@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1ACC030C-3071-4290-ACD9-B76CB7A651BD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HB.RabbitMQ.ServiceModel</RootNamespace>
+    <AssemblyName>HB.RabbitMQ.ServiceModel</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="RabbitMQ.Client">
+      <HintPath>..\packages\RabbitMQ.Client.3.5.4\lib\net40\RabbitMQ.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DequeueResult.cs" />
+    <Compile Include="CloseReasons.cs" />
+    <Compile Include="ConcurrentOperationManager+OperationContext.cs" />
+    <Compile Include="ConcurrentOperationManager.cs" />
+    <Compile Include="ExtensionMethods\ActionExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\BindingContextExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\CancellationTokenSourceExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\DictionaryExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\ManualResetEventSlimExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\NameValueCollectionExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\RabbitMessageQueueReaderExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\RabbitMessageQueueWriterExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\StreamExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\TimeSpanExtensionMethods.cs" />
+    <Compile Include="IChannelFactory.cs" />
+    <Compile Include="IRabbitMQReader.cs" />
+    <Compile Include="IRabbitMQReaderWriterFactory.cs" />
+    <Compile Include="IRabbitMQWriter.cs" />
+    <Compile Include="MessageHeaders.cs" />
+    <Compile Include="MessageNotAcknowledgedByBrokerException.cs" />
+    <Compile Include="MethodInvocationTrace.cs" />
+    <Compile Include="RabbitMQReaderWriterFactory.cs" />
+    <Compile Include="RabbitMQChannelBase.cs" />
+    <Compile Include="RabbitMQChannelFactoryBase.cs" />
+    <Compile Include="RabbitMQChannelListenerBase.cs" />
+    <Compile Include="RabbitMQConnectionBase.cs" />
+    <Compile Include="RabbitMQReaderConnection.cs" />
+    <Compile Include="RabbitMQWriterConnection.cs" />
+    <Compile Include="ReaderQueueArguments.cs" />
+    <Compile Include="RemoteQueueDoesNotExistException.cs" />
+    <Compile Include="TaskQueue\Duplex\Actions.cs" />
+    <Compile Include="TaskQueue\Duplex\Messages\CloseSessionRequest.cs" />
+    <Compile Include="TaskQueue\Duplex\Messages\CreateSessionRequest.cs" />
+    <Compile Include="TaskQueue\Duplex\Messages\CreateSessionResponse.cs" />
+    <Compile Include="TaskQueue\Duplex\Messages\InputSessionClosingRequest.cs" />
+    <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueClientDuplexChannel.cs" />
+    <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueDuplexChannelFactory.cs" />
+    <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueDuplexChannelListener.cs" />
+    <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueServerDuplexChannel.cs" />
+    <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueDuplexChannelBase.cs" />
+    <Compile Include="TaskQueue\NoOpDequeueThrottlerFactory.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueChannelBase.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueUri+QueryKeys.cs" />
+    <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueReplyChannelListener.cs" />
+    <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueRequestChannel.cs" />
+    <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueReplyChannel.cs" />
+    <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueRequestChannelFactory.cs" />
+    <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueRequestContext.cs" />
+    <Compile Include="Throttling\ThrottleResult.cs" />
+    <Compile Include="TimeSpanHelper.cs" />
+    <Compile Include="TryReceiveRequestDelegate.cs" />
+    <Compile Include="Throttling\CpuAndMemoryDequeueThrottler.cs" />
+    <Compile Include="Throttling\CpuAndMemoryDequeueThrottlerFactory.cs" />
+    <Compile Include="Throttling\CpuAndMemoryHistoricalInfo.cs" />
+    <Compile Include="Throttling\CpuAndMemoryLoad.cs" />
+    <Compile Include="DisposeHelper.cs" />
+    <Compile Include="ExtensionMethods\BlockingCollectionExtensionMethods.cs" />
+    <Compile Include="Throttling\IDequeueThrottlerFactory.cs" />
+    <Compile Include="Throttling\NoOpDequeueThrottler.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="AmqpProtocols.cs" />
+    <Compile Include="RabbitMQReader.cs" />
+    <Compile Include="RabbitMQWriter.cs" />
+    <Compile Include="TaskQueue\BindingPropertyNames.cs" />
+    <Compile Include="Throttling\IDequeueThrottler.cs" />
+    <Compile Include="TaskQueue\Constants.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueBinding.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueBindingElement.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueBindingElementCollection.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueChannelFactoryBase.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueChannelListenerBase.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueUri.cs" />
+    <Compile Include="TaskQueue\RabbitMQTransportBindingElement.cs" />
+    <Compile Include="TryReceiveDelegate.cs" />
+    <Compile Include="TimeoutTimer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HB.RabbitMQ.ServiceModel.nuspec" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
