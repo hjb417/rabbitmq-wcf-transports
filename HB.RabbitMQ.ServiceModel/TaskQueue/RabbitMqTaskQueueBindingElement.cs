@@ -8,81 +8,79 @@ using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {
-    public sealed class RabbitMQTaskQueueBindingElement : StandardBindingElement
+    public sealed partial class RabbitMQTaskQueueBindingElement : StandardBindingElement
     {
         public RabbitMQTaskQueueBindingElement()
         {
-            MaxBufferPoolSize = 524288;
-            MaxReceivedMessageSize = 524288;
-            QueueTimeToLive = TimeSpan.FromMinutes(20);
         }
 
-        [ConfigurationProperty(BindingPropertyNames.HostName, DefaultValue = "localhost")]
+        [ConfigurationProperty(BindingPropertyNames.HostName, DefaultValue = DefaultValues.HostName)]
         public string HostName
         {
             get { return ((string)base[BindingPropertyNames.HostName]); }
             set { base[BindingPropertyNames.HostName] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.Port, DefaultValue = AmqpTcpEndpoint.UseDefaultPort)]
+        [ConfigurationProperty(BindingPropertyNames.Port, DefaultValue = DefaultValues.Port)]
         public int Port
         {
             get { return ((int)base[BindingPropertyNames.Port]); }
             set { base[BindingPropertyNames.Port] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.MaxBufferPoolSize, DefaultValue = 524288L)]
+        [ConfigurationProperty(BindingPropertyNames.MaxBufferPoolSize, DefaultValue = DefaultValues.MaxBufferPoolSize)]
         public long MaxBufferPoolSize
         {
             get { return ((long)base[BindingPropertyNames.MaxBufferPoolSize]); }
             set { base[BindingPropertyNames.MaxBufferPoolSize] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.MaxReceivedMessageSize, DefaultValue = 65536L)]
+        [ConfigurationProperty(BindingPropertyNames.MaxReceivedMessageSize, DefaultValue = DefaultValues.MaxReceivedMessageSize)]
         public long MaxReceivedMessageSize
         {
             get { return ((long)base[BindingPropertyNames.MaxReceivedMessageSize]); }
             set { base[BindingPropertyNames.MaxReceivedMessageSize] = value; }
         }
-        
+
+        [ConfigurationProperty(BindingPropertyNames.QueueTimeToLive, DefaultValue = DefaultValues.QueueTimeToLive)]
         public TimeSpan? QueueTimeToLive
         {
             get { return ((TimeSpan?)base[BindingPropertyNames.QueueTimeToLive]); }
             set { base[BindingPropertyNames.QueueTimeToLive] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.Password, DefaultValue = ConnectionFactory.DefaultPass)]
+        [ConfigurationProperty(BindingPropertyNames.Password, DefaultValue = DefaultValues.Password)]
         public string Password
         {
             get { return ((string)base[BindingPropertyNames.Password]); }
             set { base[BindingPropertyNames.Password] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.UserName, DefaultValue = ConnectionFactory.DefaultUser)]
+        [ConfigurationProperty(BindingPropertyNames.UserName, DefaultValue = DefaultValues.Username)]
         public string Username
         {
             get { return ((string)base[BindingPropertyNames.UserName]); }
             set { base[BindingPropertyNames.UserName] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.VirtualHost, DefaultValue = ConnectionFactory.DefaultVHost)]
+        [ConfigurationProperty(BindingPropertyNames.VirtualHost, DefaultValue = DefaultValues.VirtualHost)]
         public string VirtualHost
         {
             get { return ((string)base[BindingPropertyNames.VirtualHost]); }
             set { base[BindingPropertyNames.VirtualHost] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.Protocol, DefaultValue = AmqpProtocols.Default)]
+        [ConfigurationProperty(BindingPropertyNames.Protocol, DefaultValue = DefaultValues.Protocol)]
         public string Protocol
         {
             get { return ((string)base[BindingPropertyNames.Protocol]); }
             set { base[BindingPropertyNames.Protocol] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.DequeueThrottlerFactory)]
-        public string DequeueThrottlerFactory
+        [ConfigurationProperty(BindingPropertyNames.DequeueThrottlerFactory, DefaultValue = DefaultValues.DequeueThrottlerFactory)]
+        public Type DequeueThrottlerFactory
         {
-            get { return ((string)base[BindingPropertyNames.DequeueThrottlerFactory]); }
+            get { return ((Type)base[BindingPropertyNames.DequeueThrottlerFactory]); }
             set { base[BindingPropertyNames.DequeueThrottlerFactory] = value; }
         }
 
@@ -96,7 +94,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             get
             {
                 ConfigurationPropertyCollection configProperties = base.Properties;
-                configProperties.Add(new ConfigurationProperty("QueueTimeToLive", typeof(TimeSpan?), TimeSpan.FromMinutes(20)));
                 foreach (var prop in GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
                 {
                     foreach (ConfigurationPropertyAttribute attr in prop.GetCustomAttributes(typeof(ConfigurationPropertyAttribute), false))
@@ -110,9 +107,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         protected override void OnApplyConfiguration(Binding binding)
         {
             var rb = (RabbitMQTaskQueueBinding)binding;
-            if (!string.IsNullOrEmpty(DequeueThrottlerFactory))
+            if (DequeueThrottlerFactory != null)
             {
-                rb.DequeueThrottlerFactory = (IDequeueThrottlerFactory)Activator.CreateInstance(Type.GetType(DequeueThrottlerFactory));
+                rb.DequeueThrottlerFactory = (IDequeueThrottlerFactory)Activator.CreateInstance(DequeueThrottlerFactory);
             }
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;

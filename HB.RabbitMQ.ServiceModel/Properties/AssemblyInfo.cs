@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("HB.RabbitMQ.ServiceModel")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("HJB417")]
 [assembly: AssemblyProduct("HB.RabbitMQ.ServiceModel")]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2015")]
 [assembly: AssemblyTrademark("")]
@@ -31,9 +32,9 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.1.0")]
-[assembly: AssemblyFileVersion("0.0.1.0")]
-[assembly: AssemblyInformationalVersion("0.0.1-beta")]
+[assembly: AssemblyVersion("0.0.2.0")]
+[assembly: AssemblyFileVersion("0.0.2.0")]
+[assembly: AssemblyInformationalVersion("0.0.2-beta")]
 [assembly: InternalsVisibleTo("HB.RabbitMQ.ServiceModel.Tests")]
 [assembly: InternalsVisibleTo("NSubstitute")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

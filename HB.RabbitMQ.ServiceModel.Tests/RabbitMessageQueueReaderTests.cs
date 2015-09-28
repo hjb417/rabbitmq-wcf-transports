@@ -171,7 +171,17 @@ namespace HB.RabbitMQ.ServiceModel.Tests
 
             using (var rdr = new RabbitMQReader(connFactory, null, null, false, true, TimeSpan.FromMinutes(20), throttler))
             {
-                rdr.Dispose();
+                throttler.WhenForAnyArgs(x => x.Throttle(0, 0, CancellationToken.None)).Do(x =>
+                {
+                    ThreadPool.QueueUserWorkItem(state =>
+                    {
+                        try
+                        {
+                            rdr.Dispose();
+                        }
+                        catch { }
+                    });
+                });
                 Exception error = null;
                 try
                 {
