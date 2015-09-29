@@ -85,10 +85,17 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                 {
                     message.Headers.To = RemoteAddress.Uri;
                 }
-                message.Headers.ReplyTo = LocalAddress;
                 message.Headers.From = LocalAddress;
+                bool isOneWayCall = true;
+                if (message.Headers.ReplyTo != null)
+                {
+                    message.Headers.ReplyTo = LocalAddress;
+                    isOneWayCall = false;
+                }
                 QueueWriter.Enqueue(RemoteUri.Exchange, RemoteUri.QueueName, message, _bufferMgr, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
-                return _queueReader.Dequeue(Binding, MessageEncoderFactory, timeout, ConcurrentOperationManager.Token);
+                return isOneWayCall
+                    ? null
+                    : _queueReader.Dequeue(Binding, MessageEncoderFactory, timeout, ConcurrentOperationManager.Token);
             }
         }
 

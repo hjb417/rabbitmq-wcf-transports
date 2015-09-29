@@ -11,7 +11,7 @@
     <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>RabbitMQ transports for WCF</description>
-    <releaseNotes>Initial prerelease</releaseNotes>
+    <releaseNotes>still in testing</releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>RabbitMQ WCF</tags>
   </metadata>
