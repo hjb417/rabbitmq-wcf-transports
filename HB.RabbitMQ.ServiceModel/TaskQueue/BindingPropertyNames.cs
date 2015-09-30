@@ -12,5 +12,7 @@
         public const string MaxBufferPoolSize = "maxBufferPoolSize";
         public const string MaxReceivedMessageSize = "maxReceivedMessageSize";
         public const string QueueTimeToLive = "queueTimeToLive";
+        public const string IncludeProcessCommandLineInQueueArguments = "includeProcessCommandLineInQueueArguments";
+        public const string IncludeProcessCommandLineInMessageHeaders = "includeProcessCommandLineInMessageHeaders";
     }
 }

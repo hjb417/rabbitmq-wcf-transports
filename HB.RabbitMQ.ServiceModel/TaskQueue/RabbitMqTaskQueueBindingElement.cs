@@ -14,6 +14,20 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
         }
 
+        [ConfigurationProperty(BindingPropertyNames.IncludeProcessCommandLineInQueueArguments, DefaultValue = DefaultValues.IncludeProcessCommandLineInQueueArguments)]
+        public bool IncludeProcessCommandLineInQueueArguments
+        {
+            get { return ((bool)base[BindingPropertyNames.IncludeProcessCommandLineInQueueArguments]); }
+            set { base[BindingPropertyNames.IncludeProcessCommandLineInQueueArguments] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.IncludeProcessCommandLineInMessageHeaders, DefaultValue = DefaultValues.IncludeProcessCommandLineInMessageHeaders)]
+        public bool IncludeProcessCommandLineInMessageHeaders
+        {
+            get { return ((bool)base[BindingPropertyNames.IncludeProcessCommandLineInMessageHeaders]); }
+            set { base[BindingPropertyNames.IncludeProcessCommandLineInMessageHeaders] = value; }
+        }
+
         [ConfigurationProperty(BindingPropertyNames.HostName, DefaultValue = DefaultValues.HostName)]
         public string HostName
         {
@@ -114,6 +128,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;
             rb.QueueTimeToLive = QueueTimeToLive;
+            rb.IncludeProcessCommandLineInMessageHeaders = IncludeProcessCommandLineInMessageHeaders;
+            rb.IncludeProcessCommandLineInQueueArguments = IncludeProcessCommandLineInQueueArguments;
             rb.ConnectionFactory = new ConnectionFactory
             {
                 HostName = HostName,

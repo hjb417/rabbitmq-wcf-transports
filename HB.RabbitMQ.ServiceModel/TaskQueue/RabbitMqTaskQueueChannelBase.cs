@@ -54,7 +54,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
             MethodInvocationTrace.Write();
             ConcurrentOperationManager = new ConcurrentOperationManager(GetType().FullName);
-            QueueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeout, ConcurrentOperationManager.Token);
+            QueueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeout, ConcurrentOperationManager.Token, Binding.WriterOptions);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)

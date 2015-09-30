@@ -28,7 +28,22 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public IDequeueThrottlerFactory DequeueThrottlerFactory { get; set; }
         internal IRabbitMQReaderWriterFactory QueueReaderWriterFactory { get; set; }
         internal Action<ICommunicationObject> CommunicationObjectCreatedCallback { get; set; }
+        internal RabbitMQReaderOptions ReaderOptions { get; private set; }
+        internal RabbitMQWriterOptions WriterOptions { get; private set; }
         public TimeSpan? QueueTimeToLive { get; set; }
+
+        public bool IncludeProcessCommandLineInQueueArguments
+        {
+            get { return ReaderOptions.IncludeProcessCommandLineInQueueArguments; }
+            set { ReaderOptions.IncludeProcessCommandLineInQueueArguments = value; }
+        }
+
+        public bool IncludeProcessCommandLineInMessageHeaders
+        {
+            get { return WriterOptions.IncludeProcessCommandLineInMessageHeaders; }
+            set { WriterOptions.IncludeProcessCommandLineInMessageHeaders = value; }
+        }
+
         public override string Scheme { get { return _transport.Scheme; } }
         
         internal BufferManager CreateBufferManager()
@@ -41,6 +56,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             QueueReaderWriterFactory = RabbitMQReaderWriterFactory.Instance;
             DequeueThrottlerFactory = NoOpDequeueThrottlerFactory.Instance;
             QueueTimeToLive = TimeSpan.FromMinutes(20);
+            ReaderOptions = new RabbitMQReaderOptions();
+            WriterOptions = new RabbitMQWriterOptions();
             _transport = new RabbitMQTransportBindingElement(this);
         }
 

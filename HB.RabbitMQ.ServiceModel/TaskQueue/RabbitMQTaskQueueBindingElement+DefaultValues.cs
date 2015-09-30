@@ -17,6 +17,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public const string VirtualHost = ConnectionFactory.DefaultVHost;
             public const string Protocol = AmqpProtocols.Default;
             public const string DequeueThrottlerFactory = null;
+            public const bool IncludeProcessCommandLineInQueueArguments = false;
+            public const bool IncludeProcessCommandLineInMessageHeaders = false;
         }
     }
 }

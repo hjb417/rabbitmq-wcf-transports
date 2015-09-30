@@ -20,7 +20,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             connFactory.CreateConnection().Returns(conn);
             conn.CreateModel().Returns(model);
 
-            using (var rdr = new RabbitMQWriter(connFactory))
+            using (var rdr = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
             {
                 rdr.EnsureOpen(TimeSpan.FromSeconds(90), CancellationToken.None);
                 model.Received().ConfirmSelect();
@@ -38,7 +38,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             connFactory.CreateConnection().Returns(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory))
+            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
             {
                 IBasicProperties props = null;
                 model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci =>
@@ -64,7 +64,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             connFactory.CreateConnection().Returns(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory))
+            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
             {
                 IBasicProperties props = null;
                 model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci =>
@@ -89,7 +89,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             connFactory.CreateConnection().Returns(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory))
+            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
             {
                 IBasicProperties props = null;
                 model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci =>
@@ -114,7 +114,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             connFactory.CreateConnection().Returns(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory))
+            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
             {
                 var exchange = Guid.NewGuid().ToString();
                 var queueName = Guid.NewGuid().ToString();

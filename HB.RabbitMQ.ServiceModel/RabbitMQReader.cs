@@ -19,13 +19,13 @@ namespace HB.RabbitMQ.ServiceModel
         private readonly RabbitMQReaderConnection _conn;
         private volatile bool _softCloseRequested;
 
-        public RabbitMQReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, IDequeueThrottler throttler)
+        public RabbitMQReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, IDequeueThrottler throttler, RabbitMQReaderOptions options)
         {
             MethodInvocationTrace.Write();
             QueueName = queueName;
             Exchange = exchange;
             _invocationTracker = new ConcurrentOperationManager(GetType().FullName);
-            _conn = new RabbitMQReaderConnection(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive);
+            _conn = new RabbitMQReaderConnection(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive, options);
             _deleteQueue = !isDurable;
             _throttler = throttler;
         }

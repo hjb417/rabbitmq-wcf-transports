@@ -37,7 +37,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
             var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, url.Exchange, url.QueueName, url.IsDurable, url.DeleteOnClose, url.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, url.Exchange, url.QueueName, url.IsDurable, url.DeleteOnClose, url.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
@@ -98,7 +98,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             {
                 try
                 {
-                    queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
+                    queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
                     var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
                     return new RabbitMQTaskQueueRequestContext(request, Binding, LocalAddress, MessageEncoderFactory, _bufferMgr, queueWriter);
                 }

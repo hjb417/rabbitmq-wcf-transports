@@ -63,7 +63,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             if ((_remoteUri != null) && _remoteUri.IsDurable)
             {
                 //create the queue if it doesn't already exist.
-                Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _remoteUri.Exchange, _remoteUri.QueueName, true, false, _remoteUri.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token).Dispose();
+                Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _remoteUri.Exchange, _remoteUri.QueueName, true, false, _remoteUri.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions).Dispose();
             }
         }
 

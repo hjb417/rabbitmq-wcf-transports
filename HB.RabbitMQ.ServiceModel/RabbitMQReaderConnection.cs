@@ -13,11 +13,12 @@ namespace HB.RabbitMQ.ServiceModel
         private readonly string _queueName;
         private readonly bool _isDurable;
         private readonly TimeSpan? _queueTtl;
+        private readonly RabbitMQReaderOptions _options;
 
-        //TODO: Add support for delete on close
-        public RabbitMQReaderConnection(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnDispose, TimeSpan? queueTimeToLive)
+        public RabbitMQReaderConnection(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnDispose, TimeSpan? queueTimeToLive, RabbitMQReaderOptions options)
             : base(connectionFactory, queueName, deleteQueueOnDispose)
         {
+            _options = options;
             _exchange = exchange;
             _queueName = queueName;
             _isDurable = isDurable;
@@ -29,7 +30,10 @@ namespace HB.RabbitMQ.ServiceModel
             model.BasicQos(0, 1, false);
             model.ConfirmSelect();
             var args = new Dictionary<string, object>();
-            args.Add(ReaderQueueArguments.CommandLine, Environment.CommandLine);
+            if (_options.IncludeProcessCommandLineInQueueArguments)
+            {
+                args.Add(ReaderQueueArguments.CommandLine, Environment.CommandLine);
+            }
             args.Add(ReaderQueueArguments.ProcessStartTime, ((DateTimeOffset)_proc.StartTime).ToString());
             args.Add(ReaderQueueArguments.ProcessId, _proc.Id);
             args.Add(ReaderQueueArguments.MachineName, Environment.MachineName);

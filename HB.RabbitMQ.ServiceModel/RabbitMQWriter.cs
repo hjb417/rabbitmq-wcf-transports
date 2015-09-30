@@ -13,12 +13,14 @@ namespace HB.RabbitMQ.ServiceModel
         private readonly RabbitMQWriterConnection _conn;
         private readonly ConcurrentOperationManager _invocationTracker;
         private static readonly Process _proc = Process.GetCurrentProcess();
+        private readonly RabbitMQWriterOptions _options;
 
-        public RabbitMQWriter(IConnectionFactory connectionFactory)
+        public RabbitMQWriter(IConnectionFactory connectionFactory, RabbitMQWriterOptions options)
         {
             MethodInvocationTrace.Write();
             _invocationTracker = new ConcurrentOperationManager(GetType().FullName);
             _conn = new RabbitMQWriterConnection(connectionFactory);
+            _options = options;
         }
 
         [ExcludeFromCodeCoverage]
@@ -47,7 +49,10 @@ namespace HB.RabbitMQ.ServiceModel
                 var msgProps = _conn.CreateBasicProperties(timeoutTimer.RemainingTime, opCancelToken.Token);
 
                 msgProps.Headers = new Dictionary<string, object>();
-                msgProps.Headers.Add(MessageHeaders.CommandLine, Environment.CommandLine);
+                if (_options.IncludeProcessCommandLineInMessageHeaders)
+                {
+                    msgProps.Headers.Add(MessageHeaders.CommandLine, Environment.CommandLine);
+                }
                 msgProps.Headers.Add(MessageHeaders.ProcessStartTime, ((DateTimeOffset)_proc.StartTime).ToString());
                 msgProps.Headers.Add(MessageHeaders.ProcessId, _proc.Id);
                 msgProps.Headers.Add(MessageHeaders.MachineName, Environment.MachineName);
