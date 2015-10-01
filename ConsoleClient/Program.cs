@@ -47,13 +47,13 @@ namespace ConsoleClient
 
         static ChannelFactory<ISimpleService> CreateClientFromConfig(ISimpleServiceCallback callback)
         {
-            //return new ChannelFactory<ISimpleService>("SimpleService");
-            return new DuplexChannelFactory<ISimpleService>(new InstanceContext(callback), "SimpleService");
+            return new ChannelFactory<ISimpleService>("SimpleService");
+            //return new DuplexChannelFactory<ISimpleService>(new InstanceContext(callback), "SimpleService");
         }
 
         static ChannelFactory<ISimpleService> CreateClientFromCode(ISimpleServiceCallback callback)
         {
-            return new  DuplexChannelFactory<ISimpleService>(new InstanceContext(callback), new RabbitMQTaskQueueBinding
+            return new ChannelFactory<ISimpleService>(new RabbitMQTaskQueueBinding
             {
                 ConnectionFactory = new ConnectionFactory
                 {

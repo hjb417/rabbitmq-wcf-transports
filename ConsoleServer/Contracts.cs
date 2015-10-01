@@ -2,12 +2,11 @@
 
 namespace Contracts
 {
-    [ServiceContract(CallbackContract = typeof(ISimpleServiceCallback), SessionMode = SessionMode.Required)]
+    [ServiceContract(SessionMode = SessionMode.NotAllowed)]
     //[ServiceContract()]
     public interface ISimpleService
     {
         [OperationContract]
-        //[TransactionFlow(TransactionFlowOption.Allowed)]
         string Echo(string input);
 
         [OperationContract(IsOneWay = true)]

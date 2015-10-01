@@ -68,16 +68,17 @@ namespace ConsoleServer
 
         public string Echo(string input)
         {
-            var callback = OperationContext.Current.GetCallbackChannel<ISimpleServiceCallback>();
+            //var callback = OperationContext.Current.GetCallbackChannel<ISimpleServiceCallback>();
             var foo = OperationContext.Current.GetCallbackChannel<IChannel>();
             ThreadPool.QueueUserWorkItem(state =>
             {
                 try
                 {
+                    return;
                     while (true)
                     {
                         Thread.Sleep(1000);
-                        callback.Ack("WOOT!!!");
+                        //callback.Ack("WOOT!!!");
                     }
                 }
                 catch (Exception e)
@@ -93,17 +94,19 @@ namespace ConsoleServer
 
         public void OneWayEcho(string input)
         {
-            var callback = OperationContext.Current.GetCallbackChannel<ISimpleServiceCallback>();
+            //var callback = OperationContext.Current.GetCallbackChannel<ISimpleServiceCallback>();
             var foo = OperationContext.Current.GetCallbackChannel<IChannel>();
             var reply = string.Format("{0}-{1}: {2}", DateTimeOffset.Now, _proc.Id, input);
             ThreadPool.QueueUserWorkItem(state =>
             {
+                Console.WriteLine(reply);
+                return;
                 try
                 {
                     var objState = foo.State;
                     //while (true)
                     {
-                        callback.Ack(reply);
+                        //callback.Ack(reply);
                         Console.WriteLine("***{0}: {1}", DateTimeOffset.Now, input);
                     }
                 }
