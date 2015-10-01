@@ -35,7 +35,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="RabbitMQ.Client">
       <HintPath>..\packages\RabbitMQ.Client.3.5.4\lib\net40\RabbitMQ.Client.dll</HintPath>
     </Reference>
@@ -106,10 +105,10 @@
     <Compile Include="Throttling\ThrottleResult.cs" />
     <Compile Include="TimeSpanHelper.cs" />
     <Compile Include="TryReceiveRequestDelegate.cs" />
-    <Compile Include="Throttling\CpuAndMemoryDequeueThrottler.cs" />
-    <Compile Include="Throttling\CpuAndMemoryDequeueThrottlerFactory.cs" />
-    <Compile Include="Throttling\CpuAndMemoryHistoricalInfo.cs" />
-    <Compile Include="Throttling\CpuAndMemoryLoad.cs" />
+    <None Include="Throttling\CpuAndMemoryDequeueThrottler.cs" />
+    <None Include="Throttling\CpuAndMemoryDequeueThrottlerFactory.cs" />
+    <None Include="Throttling\CpuAndMemoryHistoricalInfo.cs" />
+    <None Include="Throttling\CpuAndMemoryLoad.cs" />
     <Compile Include="DisposeHelper.cs" />
     <Compile Include="ExtensionMethods\BlockingCollectionExtensionMethods.cs" />
     <Compile Include="Throttling\IDequeueThrottlerFactory.cs" />

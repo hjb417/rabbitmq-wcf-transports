@@ -106,41 +106,52 @@ namespace HB.RabbitMQ.ServiceModel
             using (_invocationTracker.TrackOperation())
             using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancelToken, _invocationTracker.Token))
             {
-                cancelTokenSource.CancelAfter(timeoutTimer.RemainingTime);
-                while (true)
+                try
+                {
+                    cancelTokenSource.CancelAfter(timeoutTimer.RemainingTime);
+                    while (true)
+                    {
+                        if (_isDisposed)
+                        {
+                            throw new ObjectDisposedException(GetType().FullName);
+                        }
+                        timeoutTimer.ThrowIfNoTimeRemaining();
+                        cancelTokenSource.Token.ThrowIfCancellationRequested();
+                        var queueInfo = QueryQueue(timeoutTimer.RemainingTime, cancelTokenSource.Token);
+                        if (queueInfo.MessageCount > 0)
+                        {
+                            var throttleResult = _throttler.Throttle(queueInfo.MessageCount, queueInfo.ConsumerCount, cancelTokenSource.Token);
+                            if (throttleResult == ThrottleResult.SkipMessage)
+                            {
+                                continue;
+                            }
+                            var msg = _conn.BasicGet(timeoutTimer.RemainingTime, cancelTokenSource.Token);
+                            if (msg != null)
+                            {
+                                var body = msg.Body;
+                                Stream messageBufferStream = null;
+                                try
+                                {
+                                    messageBufferStream = new MemoryStream(msg.Body);
+                                    return new DequeueResult(msg.DeliveryTag, msg.Redelivered, msg.Exchange, msg.RoutingKey, msg.MessageCount, msg.BasicProperties, messageBufferStream);
+                                }
+                                catch
+                                {
+                                    DisposeHelper.DisposeIfNotNull(messageBufferStream);
+                                    throw;
+                                }
+                            }
+                        }
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (OperationCanceledException e)
                 {
                     if (_isDisposed)
                     {
-                        throw new ObjectDisposedException(GetType().FullName);
+                        throw new ObjectDisposedException(GetType().FullName, e);
                     }
-                    timeoutTimer.ThrowIfNoTimeRemaining();
-                    cancelTokenSource.Token.ThrowIfCancellationRequested();
-                    var queueInfo = QueryQueue(timeoutTimer.RemainingTime, cancelTokenSource.Token);
-                    if (queueInfo.MessageCount > 0)
-                    {
-                        var throttleResult = _throttler.Throttle(queueInfo.MessageCount, queueInfo.ConsumerCount, cancelTokenSource.Token);
-                        if (throttleResult == ThrottleResult.SkipMessage)
-                        {
-                            continue;
-                        }
-                        var msg = _conn.BasicGet(timeoutTimer.RemainingTime, cancelTokenSource.Token);
-                        if (msg != null)
-                        {
-                            var body = msg.Body;
-                            Stream messageBufferStream = null;
-                            try
-                            {
-                                messageBufferStream = new MemoryStream(msg.Body);
-                                return new DequeueResult(msg.DeliveryTag, msg.Redelivered, msg.Exchange, msg.RoutingKey, msg.MessageCount, msg.BasicProperties, messageBufferStream);
-                            }
-                            catch
-                            {
-                                DisposeHelper.DisposeIfNotNull(messageBufferStream);
-                                throw;
-                            }
-                        }
-                    }
-                    Thread.Sleep(1);
+                    throw;
                 }
             }
         }
