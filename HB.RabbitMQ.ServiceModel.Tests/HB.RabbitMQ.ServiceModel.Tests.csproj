@@ -99,6 +99,7 @@
     <Compile Include="TaskQueue\Duplex\TestServices\LongProcessingService\LongProcessingServiceClient.cs" />
     <Compile Include="TaskQueue\Duplex\TestServices\LongProcessingService\ILongProcessingService.cs" />
     <Compile Include="TaskQueue\Duplex\TestServices\LongProcessingService\LongProcessingService.cs" />
+    <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueReplyChannelListenerTests.cs" />
     <Compile Include="TaskQueue\RequestReply\TestServices\RabbitMQLongProcessingServiceTests.cs" />
     <Compile Include="TaskQueue\RequestReply\TestServices\VanillaServiceTests.cs" />
     <Compile Include="TaskQueue\RequestReply\TestServices\VanillaService\IVanillaService.cs" />

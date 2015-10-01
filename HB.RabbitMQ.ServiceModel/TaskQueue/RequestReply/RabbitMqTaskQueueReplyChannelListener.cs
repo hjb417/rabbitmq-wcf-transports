@@ -25,15 +25,26 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             {
                 return null;
             }
-            using (ConcurrentOperationManager.TrackOperation())
+            try
             {
-                var gotChannel = _inputChannelsBuffer.TryTake(out channel, timeout, ConcurrentOperationManager.Token);
-                if (!gotChannel)
+                using (ConcurrentOperationManager.TrackOperation())
                 {
-                    throw new TimeoutException();
+                    var gotChannel = _inputChannelsBuffer.TryTake(out channel, timeout, ConcurrentOperationManager.Token);
+                    if (!gotChannel)
+                    {
+                        throw new TimeoutException();
+                    }
+                    channel.Closed += OnInputChannelClosed;
+                    return channel;
                 }
-                channel.Closed += OnInputChannelClosed;
-                return channel;
+            }
+            catch(OperationCanceledException)
+            {
+                if(State != CommunicationState.Opened)
+                {
+                    return null;
+                }
+                throw;
             }
         }
 
