@@ -105,6 +105,7 @@
     <Compile Include="Throttling\ThrottleResult.cs" />
     <Compile Include="TimeSpanHelper.cs" />
     <Compile Include="TryReceiveRequestDelegate.cs" />
+    <None Include="HB.RabbitMQ.ServiceModel.licenseheader" />
     <None Include="Throttling\CpuAndMemoryDequeueThrottler.cs" />
     <None Include="Throttling\CpuAndMemoryDequeueThrottlerFactory.cs" />
     <None Include="Throttling\CpuAndMemoryHistoricalInfo.cs" />
