@@ -74,9 +74,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             base.OnOpen(timeoutTimer.RemainingTime);
             if (RemoteUri.IsDurable)
             {
-                Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, RemoteUri.Exchange, RemoteUri.QueueName, RemoteUri.IsDurable, false, RemoteUri.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions).Dispose();
+                Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, RemoteUri.Exchange, RemoteUri.QueueName, RemoteUri.IsDurable, false, RemoteUri.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions).Dispose();
             }
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _localAddress.Exchange, _localAddress.QueueName, _localAddress.IsDurable, _localAddress.DeleteOnClose, _localAddress.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _localAddress.Exchange, _localAddress.QueueName, _localAddress.IsDurable, _localAddress.DeleteOnClose, _localAddress.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)

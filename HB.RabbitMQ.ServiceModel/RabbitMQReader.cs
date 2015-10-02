@@ -34,13 +34,13 @@ namespace HB.RabbitMQ.ServiceModel
         private readonly ConcurrentOperationManager _invocationTracker;
         private volatile bool _isDisposed;
         private bool _deleteQueue;
-        private readonly IDequeueThrottler _throttler;
         private static readonly TimeSpan _keepAliveInterval = TimeSpan.FromMinutes(5);
         private static readonly byte[] _emptyBuffer = new byte[0];
         private readonly RabbitMQReaderConnection _conn;
         private volatile bool _softCloseRequested;
+        private readonly IDequeueThrottler _throttler;
 
-        public RabbitMQReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, IDequeueThrottler throttler, RabbitMQReaderOptions options)
+        public RabbitMQReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, RabbitMQReaderOptions options)
         {
             MethodInvocationTrace.Write();
             QueueName = queueName;
@@ -48,7 +48,7 @@ namespace HB.RabbitMQ.ServiceModel
             _invocationTracker = new ConcurrentOperationManager(GetType().FullName);
             _conn = new RabbitMQReaderConnection(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive, options);
             _deleteQueue = !isDurable;
-            _throttler = throttler;
+            _throttler = options.DequeueThrottlerFactory.Create(exchange,queueName);
         }
 
         [ExcludeFromCodeCoverage]

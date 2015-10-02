@@ -28,7 +28,7 @@ namespace HB.RabbitMQ.ServiceModel
 {
     internal interface IRabbitMQReaderWriterFactory
     {
-        IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, IDequeueThrottler throttler, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options);
+        IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options);
         IRabbitMQWriter CreateWriter(IConnectionFactory connectionFactory, TimeSpan timeout, CancellationToken cancelToken, RabbitMQWriterOptions options);
     }
 }

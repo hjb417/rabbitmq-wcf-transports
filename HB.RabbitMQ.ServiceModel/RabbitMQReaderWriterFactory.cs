@@ -39,12 +39,12 @@ namespace HB.RabbitMQ.ServiceModel
 
         public static RabbitMQReaderWriterFactory Instance { get; private set; }
 
-        public IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, IDequeueThrottler throttler, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options)
+        public IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options)
         {
             RabbitMQReader reader = null;
             try
             {
-                reader = new RabbitMQReader(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive, throttler, options);
+                reader = new RabbitMQReader(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive, options);
                 reader.EnsureOpen(timeout, cancelToken);
                 return reader;
             }

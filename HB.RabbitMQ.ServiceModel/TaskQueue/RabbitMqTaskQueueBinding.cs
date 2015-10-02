@@ -27,7 +27,6 @@ using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {
-    //TODO: Add DefaultTimeToLive
     public sealed class RabbitMQTaskQueueBinding : CustomBinding
     {
         private RabbitMQTransportBindingElement _transport;
@@ -46,7 +45,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public long MaxBufferPoolSize { get { return _transport.MaxBufferPoolSize; } set { _transport.MaxBufferPoolSize = value; } }
         public long MaxReceivedMessageSize { get { return _transport.MaxReceivedMessageSize; } set { _transport.MaxReceivedMessageSize = value; } }
         public IConnectionFactory ConnectionFactory { get; set; }
-        public IDequeueThrottlerFactory DequeueThrottlerFactory { get; set; }
         internal IRabbitMQReaderWriterFactory QueueReaderWriterFactory { get; set; }
         internal Action<ICommunicationObject> CommunicationObjectCreatedCallback { get; set; }
         internal RabbitMQReaderOptions ReaderOptions { get; private set; }
@@ -66,7 +64,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         }
 
         public override string Scheme { get { return _transport.Scheme; } }
-        
+
         internal BufferManager CreateBufferManager()
         {
             return BufferManager.CreateBufferManager(MaxBufferPoolSize, (int)MaxReceivedMessageSize);
@@ -75,7 +73,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private void Initialize()
         {
             QueueReaderWriterFactory = RabbitMQReaderWriterFactory.Instance;
-            DequeueThrottlerFactory = NoOpDequeueThrottlerFactory.Instance;
             QueueTimeToLive = TimeSpan.FromMinutes(20);
             ReaderOptions = new RabbitMQReaderOptions();
             WriterOptions = new RabbitMQWriterOptions();
@@ -85,7 +82,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public override BindingElementCollection CreateBindingElements()
         {
             var bindings = base.CreateBindingElements();
-            bindings.Add(new TransactionFlowBindingElement() { AllowWildcardAction = true, TransactionProtocol = TransactionProtocol.OleTransactions });
+            bindings.Add(new TransactionFlowBindingElement { AllowWildcardAction = true, TransactionProtocol = TransactionProtocol.OleTransactions });
             bindings.Add(new RabbitMQTransportBindingElement(this));
             return bindings;
         }

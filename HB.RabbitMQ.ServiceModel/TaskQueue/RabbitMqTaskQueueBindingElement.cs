@@ -144,7 +144,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             var rb = (RabbitMQTaskQueueBinding)binding;
             if (DequeueThrottlerFactory != null)
             {
-                rb.DequeueThrottlerFactory = (IDequeueThrottlerFactory)Activator.CreateInstance(DequeueThrottlerFactory);
+                rb.ReaderOptions.DequeueThrottlerFactory = (IDequeueThrottlerFactory)Activator.CreateInstance(DequeueThrottlerFactory);
             }
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;

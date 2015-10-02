@@ -58,7 +58,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
             var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, url.Exchange, url.QueueName, url.IsDurable, url.DeleteOnClose, url.TimeToLive, NoOpDequeueThrottler.Instance, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, url.Exchange, url.QueueName, url.IsDurable, url.DeleteOnClose, url.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)

@@ -19,10 +19,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using HB.RabbitMQ.ServiceModel.TaskQueue;
+using HB.RabbitMQ.ServiceModel.Throttling;
+
 namespace HB.RabbitMQ.ServiceModel
 {
     internal sealed class RabbitMQReaderOptions
     {
+        private IDequeueThrottlerFactory _dequeueThrottlerFactory;
+
+        public RabbitMQReaderOptions()
+        {
+        }
+
         public bool IncludeProcessCommandLineInQueueArguments { get; set; }
+
+        public IDequeueThrottlerFactory DequeueThrottlerFactory
+        {
+            get { return _dequeueThrottlerFactory ?? NoOpDequeueThrottlerFactory.Instance; }
+            set { _dequeueThrottlerFactory = value; }
+        }
     }
 }

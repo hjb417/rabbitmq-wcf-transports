@@ -65,10 +65,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                 createSessionReqMsg.Headers.To = RemoteAddress.Uri;
                 createSessionReqMsg.Headers.MessageId = new UniqueId();
 
-                var msgThrottle = Binding.DequeueThrottlerFactory.Create(localUri.Exchange, localUri.QueueName);
                 try
                 {
-                    _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, localUri.Exchange, localUri.QueueName, localUri.IsDurable, localUri.DeleteOnClose, localUri.TimeToLive, msgThrottle, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
+                    _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, localUri.Exchange, localUri.QueueName, localUri.IsDurable, localUri.DeleteOnClose, localUri.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions);
                     QueueWriter.Enqueue(_remoteAddress.Exchange, _remoteAddress.QueueName, createSessionReqMsg, _bufferMgr, Binding, MessageEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                     using (var msg = _queueReader.Dequeue(Binding, MessageEncoderFactory, timer.RemainingTime, ConcurrentOperationManager.Token))
                     {
