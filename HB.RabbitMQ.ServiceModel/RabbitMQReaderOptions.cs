@@ -24,7 +24,7 @@ using HB.RabbitMQ.ServiceModel.Throttling;
 
 namespace HB.RabbitMQ.ServiceModel
 {
-    internal sealed class RabbitMQReaderOptions
+    public sealed class RabbitMQReaderOptions
     {
         private IDequeueThrottlerFactory _dequeueThrottlerFactory;
 

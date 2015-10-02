@@ -47,21 +47,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public IConnectionFactory ConnectionFactory { get; set; }
         internal IRabbitMQReaderWriterFactory QueueReaderWriterFactory { get; set; }
         internal Action<ICommunicationObject> CommunicationObjectCreatedCallback { get; set; }
-        internal RabbitMQReaderOptions ReaderOptions { get; private set; }
-        internal RabbitMQWriterOptions WriterOptions { get; private set; }
+        public RabbitMQReaderOptions ReaderOptions { get; private set; }
+        public RabbitMQWriterOptions WriterOptions { get; private set; }
         public TimeSpan? QueueTimeToLive { get; set; }
-
-        public bool IncludeProcessCommandLineInQueueArguments
-        {
-            get { return ReaderOptions.IncludeProcessCommandLineInQueueArguments; }
-            set { ReaderOptions.IncludeProcessCommandLineInQueueArguments = value; }
-        }
-
-        public bool IncludeProcessCommandLineInMessageHeaders
-        {
-            get { return WriterOptions.IncludeProcessCommandLineInMessageHeaders; }
-            set { WriterOptions.IncludeProcessCommandLineInMessageHeaders = value; }
-        }
 
         public override string Scheme { get { return _transport.Scheme; } }
 

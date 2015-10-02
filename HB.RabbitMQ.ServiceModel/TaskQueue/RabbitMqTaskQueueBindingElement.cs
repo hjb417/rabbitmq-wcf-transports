@@ -149,8 +149,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;
             rb.QueueTimeToLive = QueueTimeToLive;
-            rb.IncludeProcessCommandLineInMessageHeaders = IncludeProcessCommandLineInMessageHeaders;
-            rb.IncludeProcessCommandLineInQueueArguments = IncludeProcessCommandLineInQueueArguments;
+            rb.ReaderOptions.IncludeProcessCommandLineInQueueArguments = IncludeProcessCommandLineInQueueArguments;
+            rb.WriterOptions.IncludeProcessCommandLineInMessageHeaders = IncludeProcessCommandLineInMessageHeaders;
             rb.ConnectionFactory = new ConnectionFactory
             {
                 HostName = HostName,
