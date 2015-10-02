@@ -35,8 +35,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RabbitMQ.Client">
-      <HintPath>..\packages\RabbitMQ.Client.3.5.4\lib\net40\RabbitMQ.Client.dll</HintPath>
+    <Reference Include="RabbitMQ.Client, Version=3.5.5.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.3.5.5\lib\net40\RabbitMQ.Client.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -106,6 +107,7 @@
     <Compile Include="TimeSpanHelper.cs" />
     <Compile Include="TryReceiveRequestDelegate.cs" />
     <None Include="HB.RabbitMQ.ServiceModel.licenseheader" />
+    <None Include="packages.config" />
     <None Include="Throttling\CpuAndMemoryDequeueThrottler.cs" />
     <None Include="Throttling\CpuAndMemoryDequeueThrottlerFactory.cs" />
     <None Include="Throttling\CpuAndMemoryHistoricalInfo.cs" />
@@ -133,7 +135,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="HB.RabbitMQ.ServiceModel.nuspec" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
