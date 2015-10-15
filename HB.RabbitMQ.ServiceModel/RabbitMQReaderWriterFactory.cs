@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 using System;
 using System.Threading;
-using HB.RabbitMQ.ServiceModel.Throttling;
 using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel

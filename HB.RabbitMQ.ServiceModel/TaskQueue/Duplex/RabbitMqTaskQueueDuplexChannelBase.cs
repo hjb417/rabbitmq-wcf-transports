@@ -23,7 +23,6 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
-using HB.RabbitMQ.ServiceModel.Throttling;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
