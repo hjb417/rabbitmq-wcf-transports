@@ -29,11 +29,12 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public const string UserName = "username";
         public const string VirtualHost = "virtualHost";
         public const string Protocol = "protocol";
-        public const string DequeueThrottlerFactory = "dequeueThrottlerFactory";
         public const string MaxBufferPoolSize = "maxBufferPoolSize";
         public const string MaxReceivedMessageSize = "maxReceivedMessageSize";
         public const string QueueTimeToLive = "queueTimeToLive";
-        public const string IncludeProcessCommandLineInQueueArguments = "includeProcessCommandLineInQueueArguments";
+        public const string WriterOptions = "writerOptions";
+        public const string ReaderOptions = "readerOptions";
         public const string IncludeProcessCommandLineInMessageHeaders = "includeProcessCommandLineInMessageHeaders";
+        public const string AutoCreateServerQueue = "autoCreateServerQueue";
     }
 }

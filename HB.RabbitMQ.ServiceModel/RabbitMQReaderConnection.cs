@@ -35,8 +35,9 @@ namespace HB.RabbitMQ.ServiceModel
         private readonly bool _isDurable;
         private readonly TimeSpan? _queueTtl;
         private readonly RabbitMQReaderOptions _options;
+        private readonly int? _maxPriority;
 
-        public RabbitMQReaderConnection(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnDispose, TimeSpan? queueTimeToLive, RabbitMQReaderOptions options)
+        public RabbitMQReaderConnection(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnDispose, TimeSpan? queueTimeToLive, RabbitMQReaderOptions options, int? maxPriority)
             : base(connectionFactory, queueName, deleteQueueOnDispose)
         {
             _options = options;
@@ -44,6 +45,7 @@ namespace HB.RabbitMQ.ServiceModel
             _queueName = queueName;
             _isDurable = isDurable;
             _queueTtl = queueTimeToLive;
+            _maxPriority = maxPriority;
         }
 
         protected override void InitializeModel(IModel model)
@@ -73,6 +75,10 @@ namespace HB.RabbitMQ.ServiceModel
             if (_queueTtl.HasValue)
             {
                 args.Add("x-expires", (int)_queueTtl.Value.TotalMilliseconds);
+            }
+            if(_maxPriority.HasValue)
+            {
+                args.Add("x-max-priority", _maxPriority.Value);
             }
             if (_isDurable)
             {

@@ -35,18 +35,16 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
         }
 
-        [ConfigurationProperty(BindingPropertyNames.IncludeProcessCommandLineInQueueArguments, DefaultValue = DefaultValues.IncludeProcessCommandLineInQueueArguments)]
-        public bool IncludeProcessCommandLineInQueueArguments
+        [ConfigurationProperty(BindingPropertyNames.WriterOptions, DefaultValue = DefaultValues.WriterOptions)]
+        public RabbitMQWriterOptionsBindingElement WriterOptions
         {
-            get { return ((bool)base[BindingPropertyNames.IncludeProcessCommandLineInQueueArguments]); }
-            set { base[BindingPropertyNames.IncludeProcessCommandLineInQueueArguments] = value; }
+            get { return ((RabbitMQWriterOptionsBindingElement)base[BindingPropertyNames.WriterOptions]); }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.IncludeProcessCommandLineInMessageHeaders, DefaultValue = DefaultValues.IncludeProcessCommandLineInMessageHeaders)]
-        public bool IncludeProcessCommandLineInMessageHeaders
+        [ConfigurationProperty(BindingPropertyNames.ReaderOptions, DefaultValue = DefaultValues.ReaderOptions)]
+        public RabbitMQReaderOptionsBindingElement ReaderOptions
         {
-            get { return ((bool)base[BindingPropertyNames.IncludeProcessCommandLineInMessageHeaders]); }
-            set { base[BindingPropertyNames.IncludeProcessCommandLineInMessageHeaders] = value; }
+            get { return ((RabbitMQReaderOptionsBindingElement)base[BindingPropertyNames.ReaderOptions]); }
         }
 
         [ConfigurationProperty(BindingPropertyNames.HostName, DefaultValue = DefaultValues.HostName)]
@@ -75,6 +73,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
             get { return ((long)base[BindingPropertyNames.MaxReceivedMessageSize]); }
             set { base[BindingPropertyNames.MaxReceivedMessageSize] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.AutoCreateServerQueue, DefaultValue = DefaultValues.AutoCreateServerQueue)]
+        public bool AutoCreateServerQueue
+        {
+            get { return ((bool)base[BindingPropertyNames.AutoCreateServerQueue]); }
+            set { base[BindingPropertyNames.AutoCreateServerQueue] = value; }
         }
 
         [ConfigurationProperty(BindingPropertyNames.QueueTimeToLive, DefaultValue = DefaultValues.QueueTimeToLive)]
@@ -112,13 +117,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { base[BindingPropertyNames.Protocol] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.DequeueThrottlerFactory, DefaultValue = DefaultValues.DequeueThrottlerFactory)]
-        public Type DequeueThrottlerFactory
-        {
-            get { return ((Type)base[BindingPropertyNames.DequeueThrottlerFactory]); }
-            set { base[BindingPropertyNames.DequeueThrottlerFactory] = value; }
-        }
-
         protected override Type BindingElementType
         {
             get { return typeof(RabbitMQTaskQueueBinding); }
@@ -142,15 +140,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         protected override void OnApplyConfiguration(Binding binding)
         {
             var rb = (RabbitMQTaskQueueBinding)binding;
-            if (DequeueThrottlerFactory != null)
-            {
-                rb.ReaderOptions.DequeueThrottlerFactory = (IDequeueThrottlerFactory)Activator.CreateInstance(DequeueThrottlerFactory);
-            }
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;
             rb.QueueTimeToLive = QueueTimeToLive;
-            rb.ReaderOptions.IncludeProcessCommandLineInQueueArguments = IncludeProcessCommandLineInQueueArguments;
-            rb.WriterOptions.IncludeProcessCommandLineInMessageHeaders = IncludeProcessCommandLineInMessageHeaders;
+            rb.AutoCreateServerQueue = AutoCreateServerQueue;
             rb.ConnectionFactory = new ConnectionFactory
             {
                 HostName = HostName,
@@ -163,6 +156,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
                 RequestedHeartbeat = 180,
                 UseBackgroundThreadsForIO = true,
             };
+            WriterOptions.ApplyConfiguration(rb.WriterOptions);
+            ReaderOptions.ApplyConfiguration(rb.ReaderOptions);
         }
 
         private IProtocol GetRabbitMQProtocol()

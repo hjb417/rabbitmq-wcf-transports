@@ -19,17 +19,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
 using HB.RabbitMQ.ServiceModel.Throttling;
 
 namespace HB.RabbitMQ.ServiceModel
 {
-    public sealed class RabbitMQReaderOptions
+    public sealed class RabbitMQReaderOptions : ICloneable
     {
         private IDequeueThrottlerFactory _dequeueThrottlerFactory;
 
         public RabbitMQReaderOptions()
         {
+        }
+
+        private RabbitMQReaderOptions(RabbitMQReaderOptions rabbitMQReaderOptions)
+        {
+            IncludeProcessCommandLineInQueueArguments = rabbitMQReaderOptions.IncludeProcessCommandLineInQueueArguments;
+            DequeueThrottlerFactory = rabbitMQReaderOptions.DequeueThrottlerFactory;
         }
 
         public bool IncludeProcessCommandLineInQueueArguments { get; set; }
@@ -38,6 +45,16 @@ namespace HB.RabbitMQ.ServiceModel
         {
             get { return _dequeueThrottlerFactory ?? NoOpDequeueThrottlerFactory.Instance; }
             set { _dequeueThrottlerFactory = value; }
+        }
+
+        public RabbitMQReaderOptions Clone()
+        {
+            return new RabbitMQReaderOptions(this);
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
         }
     }
 }

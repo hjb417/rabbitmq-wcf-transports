@@ -22,7 +22,6 @@ THE SOFTWARE.
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using HB.RabbitMQ.ServiceModel.Throttling;
 using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue
@@ -30,6 +29,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
     public sealed class RabbitMQTaskQueueBinding : CustomBinding
     {
         private RabbitMQTransportBindingElement _transport;
+        private RabbitMQReaderOptions _rdrOptions = new RabbitMQReaderOptions();
+        private RabbitMQWriterOptions _writerOptions = new RabbitMQWriterOptions();
+        private TimeSpan? _ttl = TimeSpan.FromMinutes(20);
+        private IRabbitMQReaderWriterFactory _queueRwFactory = RabbitMQReaderWriterFactory.Instance;
 
         public RabbitMQTaskQueueBinding()
         {
@@ -45,11 +48,33 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public long MaxBufferPoolSize { get { return _transport.MaxBufferPoolSize; } set { _transport.MaxBufferPoolSize = value; } }
         public long MaxReceivedMessageSize { get { return _transport.MaxReceivedMessageSize; } set { _transport.MaxReceivedMessageSize = value; } }
         public IConnectionFactory ConnectionFactory { get; set; }
-        internal IRabbitMQReaderWriterFactory QueueReaderWriterFactory { get; set; }
         internal Action<ICommunicationObject> CommunicationObjectCreatedCallback { get; set; }
-        public RabbitMQReaderOptions ReaderOptions { get; private set; }
-        public RabbitMQWriterOptions WriterOptions { get; private set; }
-        public TimeSpan? QueueTimeToLive { get; set; }
+
+        internal IRabbitMQReaderWriterFactory QueueReaderWriterFactory
+        {
+            get { return _queueRwFactory; }
+            set { _queueRwFactory = value; }
+        }
+
+        public RabbitMQReaderOptions ReaderOptions
+        {
+            get { return _rdrOptions; }
+            set { _rdrOptions = value.Clone() ?? new RabbitMQReaderOptions(); }
+        }
+
+        public RabbitMQWriterOptions WriterOptions
+        {
+            get { return _writerOptions; }
+            set { _writerOptions = value.Clone() ?? new RabbitMQWriterOptions(); }
+        }
+
+        public TimeSpan? QueueTimeToLive
+        {
+            get { return _ttl; }
+            set { _ttl = value; }
+        }
+
+        public bool AutoCreateServerQueue { get; set; }
 
         public override string Scheme { get { return _transport.Scheme; } }
 
@@ -60,10 +85,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 
         private void Initialize()
         {
-            QueueReaderWriterFactory = RabbitMQReaderWriterFactory.Instance;
-            QueueTimeToLive = TimeSpan.FromMinutes(20);
-            ReaderOptions = new RabbitMQReaderOptions();
-            WriterOptions = new RabbitMQWriterOptions();
             _transport = new RabbitMQTransportBindingElement(this);
         }
 

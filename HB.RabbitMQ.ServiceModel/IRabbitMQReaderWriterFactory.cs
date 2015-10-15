@@ -21,14 +21,13 @@ THE SOFTWARE.
 */
 using System;
 using System.Threading;
-using HB.RabbitMQ.ServiceModel.Throttling;
 using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel
 {
     internal interface IRabbitMQReaderWriterFactory
     {
-        IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options);
+        IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options, int? maxPriority);
         IRabbitMQWriter CreateWriter(IConnectionFactory connectionFactory, TimeSpan timeout, CancellationToken cancelToken, RabbitMQWriterOptions options);
     }
 }

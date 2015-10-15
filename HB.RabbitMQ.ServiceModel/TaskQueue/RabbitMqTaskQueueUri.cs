@@ -36,9 +36,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             IsDurable = qs.ContainsKey(QueryKeys.Durable) ? bool.Parse(qs[QueryKeys.Durable]) : true;
             DeleteOnClose = qs.ContainsKey(QueryKeys.DeleteOnClose) ? bool.Parse(qs[QueryKeys.DeleteOnClose]) : false;
             TimeToLive = qs.ContainsKey(QueryKeys.Ttl) ? TimeSpan.Parse(qs[QueryKeys.Ttl]) : default(TimeSpan?);
+            MaxPriority = qs.ContainsKey(QueryKeys.MaxPriority) ? int.Parse(qs[QueryKeys.MaxPriority]) : default(int?);
         }
 
-        public static RabbitMQTaskQueueUri Create(string queueName, string exhangeName = Constants.DefaultExchange, bool durable = true, bool deleteOnClose = false, TimeSpan? ttl = null)
+        public static RabbitMQTaskQueueUri Create(string queueName, string exhangeName = Constants.DefaultExchange, bool durable = true, bool deleteOnClose = false, TimeSpan? ttl = null, int? maxPriority = null)
         {
             var queryStringValues = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
             queryStringValues[QueryKeys.Exchange] = exhangeName;
@@ -47,6 +48,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             if (ttl.HasValue)
             {
                 queryStringValues[QueryKeys.Ttl] = ttl.ToString();
+            }
+            if (maxPriority.HasValue)
+            {
+                queryStringValues[QueryKeys.MaxPriority] = maxPriority.ToString();
             }
 
             return new RabbitMQTaskQueueUri(string.Format("{0}://{1}?{2}", Constants.Scheme, queueName, queryStringValues.ToQueryString()));
@@ -57,5 +62,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public bool IsDurable { get; private set; }
         public bool DeleteOnClose { get; private set; }
         public TimeSpan? TimeToLive { get; private set; }
+        public int? MaxPriority { get; private set; }
     }
 }

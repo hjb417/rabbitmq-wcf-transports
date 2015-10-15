@@ -59,6 +59,7 @@
     <Compile Include="ExtensionMethods\ActionExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\BindingContextExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\CancellationTokenSourceExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\CloneableExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\DictionaryExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\ManualResetEventSlimExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\NameValueCollectionExtensionMethods.cs" />
@@ -74,6 +75,9 @@
     <Compile Include="MessageNotAcknowledgedByBrokerException.cs" />
     <Compile Include="MethodInvocationTrace.cs" />
     <Compile Include="RabbitMQReaderOptions.cs" />
+    <Compile Include="RabbitMQReaderOptionsBindingElement+BindingPropertyNames.cs" />
+    <Compile Include="RabbitMQReaderOptionsBindingElement+DefaultValues.cs" />
+    <Compile Include="RabbitMQReaderOptionsBindingElement.cs" />
     <Compile Include="RabbitMQReaderWriterFactory.cs" />
     <Compile Include="RabbitMQChannelBase.cs" />
     <Compile Include="RabbitMQChannelFactoryBase.cs" />
@@ -82,6 +86,9 @@
     <Compile Include="RabbitMQReaderConnection.cs" />
     <Compile Include="RabbitMQWriterConnection.cs" />
     <Compile Include="RabbitMQWriterOptions.cs" />
+    <Compile Include="RabbitMQWriterOptionsBindingElement+BindingPropertyNames.cs" />
+    <Compile Include="RabbitMQWriterOptionsBindingElement+DefaultValues.cs" />
+    <Compile Include="RabbitMQWriterOptionsBindingElement.cs" />
     <Compile Include="ReaderQueueArguments.cs" />
     <Compile Include="RemoteQueueDoesNotExistException.cs" />
     <Compile Include="TaskQueue\Duplex\Actions.cs" />

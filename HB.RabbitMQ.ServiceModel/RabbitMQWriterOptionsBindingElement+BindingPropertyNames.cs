@@ -20,28 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using RabbitMQ.Client;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace HB.RabbitMQ.ServiceModel.TaskQueue
+namespace HB.RabbitMQ.ServiceModel
 {
-    partial class RabbitMQTaskQueueBindingElement
+    partial class RabbitMQWriterOptionsBindingElement
     {
-        internal sealed class DefaultValues
+        private sealed class BindingPropertyNames
         {
-            public const string HostName = "localhost";
-            public const int Port = AmqpTcpEndpoint.UseDefaultPort;
-            public const long MaxBufferPoolSize = 524288;
-            public const long MaxReceivedMessageSize = 65536;
-            public const string QueueTimeToLive = "00:20:00";
-            public const string Password = ConnectionFactory.DefaultPass;
-            public const string Username = ConnectionFactory.DefaultUser;
-            public const string VirtualHost = ConnectionFactory.DefaultVHost;
-            public const string Protocol = AmqpProtocols.Default;
-            public const bool IncludeProcessCommandLineInQueueArguments = false;
-            public const bool IncludeProcessCommandLineInMessageHeaders = false;
-            public const bool AutoCreateServerQueue = false;
-            public const string WriterOptions = null;
-            public const string ReaderOptions = null;
+            public const string IncludeProcessCommandLineInMessageHeaders = "includeProcessCommandLineInMessageHeaders";
+            public const string MessagePriority = "messagePriority";
         }
     }
 }

@@ -29,6 +29,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public static string Durable = "durable";
             public static string DeleteOnClose = "deleteonclose";
             public static string Ttl = "ttl";
+            public static string MaxPriority = "maxpriority";
         }
     }
 }

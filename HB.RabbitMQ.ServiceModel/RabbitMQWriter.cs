@@ -88,6 +88,10 @@ namespace HB.RabbitMQ.ServiceModel
                 {
                     msgProps.Expiration = timetoLive.TotalMilliseconds.ToString("0");
                 }
+                if(_options.MessagePriority.HasValue)
+                {
+                    msgProps.Priority = (byte)_options.MessagePriority.Value;
+                }
                 _conn.BasicPublish(exchange, queueName, msgProps, messageStream, timeoutTimer.RemainingTime, opCancelToken.Token);
             }
         }
