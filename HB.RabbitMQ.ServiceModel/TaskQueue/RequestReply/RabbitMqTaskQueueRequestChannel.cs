@@ -71,7 +71,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
-            if (RemoteUri.IsDurable)
+            if (Binding.AutoCreateServerQueue)
             {
                 Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, RemoteUri.Exchange, RemoteUri.QueueName, RemoteUri.IsDurable, false, RemoteUri.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, RemoteUri.MaxPriority).Dispose();
             }

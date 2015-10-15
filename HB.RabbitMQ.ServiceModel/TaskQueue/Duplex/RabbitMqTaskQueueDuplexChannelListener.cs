@@ -91,7 +91,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     IRabbitMQReader reader = null;
                     try
                     {
-                        reader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _listenUri.Exchange, queueName, false, true, _listenUri.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, _listenUri.MaxPriority);
+                        reader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _listenUri.Exchange, queueName, false, true, _listenUri.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
                         _writer.Enqueue(clientUri.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                         return (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader);
                     }

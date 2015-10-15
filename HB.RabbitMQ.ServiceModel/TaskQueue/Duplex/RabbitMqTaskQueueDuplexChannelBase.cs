@@ -80,7 +80,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             CloseSessionRequestReceived = false;
             InputSessionClosingRequestReceived = false;
             base.OnOpen(timeoutTimer.RemainingTime);
-            if ((_remoteUri != null) && _remoteUri.IsDurable)
+            if ((_remoteUri != null) && Binding.AutoCreateServerQueue)
             {
                 //create the queue if it doesn't already exist.
                 Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _remoteUri.Exchange, _remoteUri.QueueName, true, false, _remoteUri.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, _remoteUri.MaxPriority).Dispose();
