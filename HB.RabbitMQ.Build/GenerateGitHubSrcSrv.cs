@@ -29,16 +29,15 @@ namespace HB.RabbitMQ.Build
         public override bool Execute()
         {
             var srcSrv = new StringBuilder();
-            srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
-VERSION=1
+            srcSrv.Append(@"SRCSRV: ini ------------------------------------------------
+VERSION=2
 INDEXVERSION=2
-VERCTL=Archive
-DATETIME={0}
+VERCTL=http
 SRCSRV: variables ------------------------------------------
 SRCSRVVERCTRL=http
 SRCSRVTRG=%var2%
 SRCSRVCMD=
-SRCSRV: source files ---------------------------------------", DateTime.Now);
+SRCSRV: source files ---------------------------------------");
             foreach(var srcFile in SourceFiles)
             {
                 srcSrv.AppendLine();
