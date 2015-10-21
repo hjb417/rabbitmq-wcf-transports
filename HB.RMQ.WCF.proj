@@ -24,6 +24,6 @@
     <WriteLinesToFile File="$(SrcSrvPath)" Lines="$(SrcSrv)"/>
     <Exec Command='"$(MSBuildProjectDirectory)\pdbstr.exe" -w -p:"$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb" -i:"$(SrcSrvPath)" -s:srcsrv'/>
     <Exec Command='"$(MSBuildProjectDirectory)\pdbstr.exe" -r -p:"$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb" -s:srcsrv'/>
-    <Exec Condition="False" Command='"$(MSBuildProjectDirectory)\NuGet.exe" pack "$(ProjectPath)" -Prop Configuration=$(Configuration)'/>
+    <Exec Command='"$(MSBuildProjectDirectory)\NuGet.exe" pack "$(ProjectPath)" -Prop Configuration=$(Configuration)'/>
   </Target>
 </Project>
