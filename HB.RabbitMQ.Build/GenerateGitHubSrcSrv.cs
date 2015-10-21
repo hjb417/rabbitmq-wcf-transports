@@ -28,22 +28,21 @@ namespace HB.RabbitMQ.Build
 
         public override bool Execute()
         {
+            var httpAlias = @"https://raw.githubusercontent.com/" + string.Join("/", GitHubUserName, GitHubPorjectName, GitCommitId) + "/";
             var srcSrv = new StringBuilder();
-            srcSrv.Append(@"SRCSRV: ini ------------------------------------------------
+            srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
 VERSION=2
-INDEXVERSION=2
 VERCTL=http
 SRCSRV: variables ------------------------------------------
-SRCSRVVERCTRL=http
-SRCSRVTRG=%var2%
-SRCSRVCMD=
-SRCSRV: source files ---------------------------------------");
-            foreach(var srcFile in SourceFiles)
+HTTP_ALIAS={0}
+HTTP_EXTRACT_TARGET=%HTTP_ALIAS%%var2%
+SRCSRVTRG=%HTTP_EXTRACT_TARGET%
+SRCSRV: source files ---------------------------------------", httpAlias);
+            foreach (var srcFile in SourceFiles)
             {
                 srcSrv.AppendLine();
                 var relactiveSourceFilePath = srcFile.Substring(ProjectDir.Length).Replace('\\', '/');
-                var url = string.Format(@"https://raw.githubusercontent.com/{0}/{1}/{2}/{3}", GitHubUserName, GitHubPorjectName, GitCommitId, relactiveSourceFilePath);
-                srcSrv.AppendFormat("{0}*{1}", srcFile, url);
+                srcSrv.AppendFormat("{0}*{1}", srcFile, relactiveSourceFilePath);
             }
             srcSrv.Append(@"SRCSRV: end ------------------------------------------------");
             SrcSrv = srcSrv.ToString();
