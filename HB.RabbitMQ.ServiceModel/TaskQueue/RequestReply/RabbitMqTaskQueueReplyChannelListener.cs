@@ -104,10 +104,17 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
 
         protected override void OnOpen(TimeSpan timeout)
         {
-            base.OnOpen(timeout);
-            _inputChannels = new ConcurrentQueue<RabbitMQTaskQueueReplyChannel>();
-            _inputChannels.Enqueue(CreateInputChannel());
-            _inputChannelsBuffer = new BlockingCollection<RabbitMQTaskQueueReplyChannel>(_inputChannels);
+            MethodInvocationTrace.Write();
+            var timeoutTimer = TimeoutTimer.StartNew(timeout);
+            base.OnOpen(timeoutTimer.RemainingTime);
+            var url = new RabbitMQTaskQueueUri(Uri.ToString());
+            //create the queue
+            using(Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, url.Exchange, url.QueueName, url.IsDurable, url.DeleteOnClose, url.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, url.MaxPriority))
+            {
+                _inputChannels = new ConcurrentQueue<RabbitMQTaskQueueReplyChannel>();
+                _inputChannels.Enqueue(CreateInputChannel());
+                _inputChannelsBuffer = new BlockingCollection<RabbitMQTaskQueueReplyChannel>(_inputChannels);
+            }
         }
 
         protected override bool OnWaitForChannel(TimeSpan timeout)
