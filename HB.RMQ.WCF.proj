@@ -1,0 +1,29 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition="$(Configuration) == ''">Release</Configuration>
+    <ProjectPath>$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\HB.RabbitMQ.ServiceModel.csproj</ProjectPath>
+    <BuildProjectPath>$(MSBuildProjectDirectory)\HB.RabbitMQ.Build\HB.RabbitMQ.Build.csproj</BuildProjectPath>
+    <SrcSrvPath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.Guid]::NewGuid()).ssp))</SrcSrvPath>
+  </PropertyGroup>
+  <UsingTask TaskName="GenerateGitHubSrcSrv" AssemblyFile="$(MSBuildProjectDirectory)\HB.RabbitMQ.Build\bin\debug\HB.RabbitMQ.Build.dll" />
+  <Target Name="Build">
+    <MSBuild Projects="$(BuildProjectPath)" Properties="Configuration=Debug" Targets="Build"/>
+    <MSBuild Projects="$(ProjectPath)" Properties="Configuration=$(Configuration)" Targets="Build"/>
+    <Exec Command='"$(MSBuildProjectDirectory)\srctool.exe" -r "$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb"' IgnoreExitCode='true' ConsoleToMSBuild='true'>
+      <Output TaskParameter="ConsoleOutput" PropertyName="FilesToIndexStr" />
+    </Exec>
+    <ItemGroup>
+      <FilesToIndex Include="$(FilesToIndexStr.Split(`;`))"/>
+      <!-- remove the last line that says "pdb is not source indexed." -->
+      <FilesToIndex Remove="@(FilesToIndex)" Condition="%(Extension) == ''"/>
+    </ItemGroup>
+    <GenerateGitHubSrcSrv SourceFiles="@(FilesToIndex)" ProjectDir="$(MSBuildProjectDirectory)\" GitHubUserName="hjb417" GitHubPorjectName="rabbitmq-wcf-transports" GitCommitId="$(GitCommitId)">
+      <Output TaskParameter="SrcSrv" PropertyName="SrcSrv"/>
+    </GenerateGitHubSrcSrv>
+    <Message Text="$(SrcSrvPath)"/>
+    <WriteLinesToFile File="$(SrcSrvPath)" Lines="$(SrcSrv)"/>
+    <Exec Command='"$(MSBuildProjectDirectory)\pdbstr.exe" -w -p:"$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb" -i:"$(SrcSrvPath)" -s:srcsrv'/>
+    <Exec Command='"$(MSBuildProjectDirectory)\pdbstr.exe" -r -p:"$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb" -s:srcsrv'/>
+    <Exec Condition="False" Command='"$(MSBuildProjectDirectory)\NuGet.exe" pack "$(ProjectPath)" -Prop Configuration=$(Configuration)'/>
+  </Target>
+</Project>
