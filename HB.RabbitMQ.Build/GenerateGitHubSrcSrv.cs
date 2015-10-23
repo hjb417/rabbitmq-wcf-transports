@@ -31,7 +31,8 @@ namespace HB.RabbitMQ.Build
             var httpAlias = @"https://raw.github.com/" + string.Join("/", GitHubUserName, GitHubPorjectName, GitCommitId) + "/";
             var srcSrv = new StringBuilder();
             srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
-VERSION=1
+VERSION=2
+VERCTL=https
 SRCSRV: variables ------------------------------------------
 SRCSRVVERCTRL=https
 SRCSRVTRG={0}%var2%
@@ -42,6 +43,7 @@ SRCSRV: source files ---------------------------------------", httpAlias);
                 var relactiveSourceFilePath = srcFile.Substring(ProjectDir.Length).Replace('\\', '/');
                 srcSrv.AppendFormat("{0}*{1}", srcFile, relactiveSourceFilePath);
             }
+            srcSrv.AppendLine();
             srcSrv.Append(@"SRCSRV: end ------------------------------------------------");
             SrcSrv = srcSrv.ToString();
             Log.LogMessage(SrcSrv);
