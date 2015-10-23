@@ -28,15 +28,13 @@ namespace HB.RabbitMQ.Build
 
         public override bool Execute()
         {
-            var httpAlias = @"https://raw.githubusercontent.com/" + string.Join("/", GitHubUserName, GitHubPorjectName, GitCommitId) + "/";
+            var httpAlias = @"https://raw.github.com/" + string.Join("/", GitHubUserName, GitHubPorjectName, GitCommitId) + "/";
             var srcSrv = new StringBuilder();
             srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
-VERSION=2
-VERCTL=http
+VERSION=1
 SRCSRV: variables ------------------------------------------
-HTTP_ALIAS={0}
-HTTP_EXTRACT_TARGET=%HTTP_ALIAS%%var2%
-SRCSRVTRG=%HTTP_EXTRACT_TARGET%
+SRCSRVVERCTRL=https
+SRCSRVTRG={0}%var2%
 SRCSRV: source files ---------------------------------------", httpAlias);
             foreach (var srcFile in SourceFiles)
             {
