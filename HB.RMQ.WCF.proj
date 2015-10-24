@@ -17,13 +17,13 @@
       <!-- remove the last line that says "pdb is not source indexed." -->
       <FilesToIndex Remove="@(FilesToIndex)" Condition="%(Extension) == ''"/>
     </ItemGroup>
-    <GenerateGitHubSrcSrv SourceFiles="@(FilesToIndex)" ProjectDir="$(MSBuildProjectDirectory)\" GitHubUserName="hjb417" GitHubPorjectName="rabbitmq-wcf-transports" GitCommitId="$(GitCommitId)">
+    <GenerateGitHubSrcSrv SourceFiles="@(FilesToIndex)" GitFolder="$(MSBuildProjectDirectory)">
       <Output TaskParameter="SrcSrv" PropertyName="SrcSrv"/>
     </GenerateGitHubSrcSrv>
     <Message Text="$(SrcSrvPath)"/>
     <WriteLinesToFile File="$(SrcSrvPath)" Lines="$(SrcSrv)"/>
     <Exec Command='"$(MSBuildProjectDirectory)\pdbstr.exe" -w -p:"$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb" -i:"$(SrcSrvPath)" -s:srcsrv'/>
     <Exec Command='"$(MSBuildProjectDirectory)\pdbstr.exe" -r -p:"$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\bin\$(Configuration)\HB.RabbitMQ.ServiceModel.pdb" -s:srcsrv'/>
-    <Exec Command='"$(MSBuildProjectDirectory)\NuGet.exe" pack "$(ProjectPath)" -Prop Configuration=$(Configuration) -Symbols'/>
+    <Exec Command='"$(MSBuildProjectDirectory)\NuGet.exe" pack "$(ProjectPath)" -Prop Configuration=$(Configuration)'/>
   </Target>
 </Project>

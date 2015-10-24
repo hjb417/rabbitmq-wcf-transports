@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using LibGit2Sharp;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -12,42 +13,40 @@ namespace HB.RabbitMQ.Build
         public string[] SourceFiles { get; set; }
 
         [Required]
-        public string ProjectDir { get; set; }
-
-        [Required]
-        public string GitHubUserName { get; private set; }
-
-        [Required]
-        public string GitHubPorjectName { get; private set; }
-
-        [Required]
-        public string GitCommitId { get; private set; }
+        public string GitFolder { get; set; }
 
         [Output]
         public string SrcSrv { get; set; }
 
         public override bool Execute()
         {
-            var httpAlias = @"https://raw.github.com/" + string.Join("/", GitHubUserName, GitHubPorjectName, GitCommitId) + "/";
-            var srcSrv = new StringBuilder();
-            srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
+            using (var repo = new Repository(GitFolder))
+            {
+                var remoteRepo = repo.Network.Remotes.Single();
+                var httpAlias = new UriBuilder(remoteRepo.Url.Substring(0, remoteRepo.Url.Length - 4) + "/" + repo.ObjectDatabase.ShortenObjectId(repo.Head.Tip) + "/");
+                httpAlias.Host = "raw.github.com";
+
+                var srcSrv = new StringBuilder();
+                srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
 VERSION=2
 VERCTL=https
 SRCSRV: variables ------------------------------------------
 SRCSRVVERCTRL=https
 SRCSRVTRG={0}%var2%
-SRCSRV: source files ---------------------------------------", httpAlias);
-            foreach (var srcFile in SourceFiles)
-            {
+SRCSRV: source files ---------------------------------------", httpAlias.Uri);
+                
+                foreach (var srcFile in SourceFiles)
+                {
+                    srcSrv.AppendLine();
+                    var relactiveSourceFilePath = srcFile.Substring(repo.Info.WorkingDirectory.Length).Replace('\\', '/');
+                    srcSrv.AppendFormat("{0}*{1}", srcFile, relactiveSourceFilePath);
+                }
                 srcSrv.AppendLine();
-                var relactiveSourceFilePath = srcFile.Substring(ProjectDir.Length).Replace('\\', '/');
-                srcSrv.AppendFormat("{0}*{1}", srcFile, relactiveSourceFilePath);
+                srcSrv.Append(@"SRCSRV: end ------------------------------------------------");
+                SrcSrv = srcSrv.ToString();
+                Log.LogMessage(SrcSrv);
+                return true;
             }
-            srcSrv.AppendLine();
-            srcSrv.Append(@"SRCSRV: end ------------------------------------------------");
-            SrcSrv = srcSrv.ToString();
-            Log.LogMessage(SrcSrv);
-            return true;
         }
     }
 }
