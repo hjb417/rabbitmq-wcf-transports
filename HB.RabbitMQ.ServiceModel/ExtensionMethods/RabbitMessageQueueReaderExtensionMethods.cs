@@ -31,8 +31,18 @@ namespace HB
     {
         public static Message Dequeue(this IRabbitMQReader rabbitMessageQueueReader, RabbitMQTaskQueueBinding binding, MessageEncoderFactory messageEncoderFactory, TimeSpan timeout, CancellationToken cancelToken)
         {
+            ulong deliveryTag;
+            var timeoutTimer = TimeoutTimer.StartNew(timeout);
+            var msg = rabbitMessageQueueReader.Dequeue(binding, messageEncoderFactory, timeoutTimer.RemainingTime, cancelToken, out deliveryTag);
+            rabbitMessageQueueReader.AcknowledgeMessage(deliveryTag, timeoutTimer.RemainingTime, cancelToken);
+            return msg;
+        }
+
+        public static Message Dequeue(this IRabbitMQReader rabbitMessageQueueReader, RabbitMQTaskQueueBinding binding, MessageEncoderFactory messageEncoderFactory, TimeSpan timeout, CancellationToken cancelToken, out ulong deliveryTag)
+        {
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             var msg = rabbitMessageQueueReader.Dequeue(timeoutTimer.RemainingTime, cancelToken);
+            deliveryTag = msg.DeliveryTag;
             Message result;
             try
             {
@@ -43,7 +53,6 @@ namespace HB
                 rabbitMessageQueueReader.RejectMessage(msg.DeliveryTag, timeoutTimer.RemainingTime, cancelToken);
                 throw;
             }
-            rabbitMessageQueueReader.AcknowledgeMessage(msg.DeliveryTag, timeoutTimer.RemainingTime, cancelToken);
             return result;
         }
     }

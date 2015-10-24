@@ -183,6 +183,12 @@ namespace HB.RabbitMQ.ServiceModel
             }
         }
 
+        public void BasicAck(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            MethodInvocationTrace.Write();
+            PerformAction(model => model.BasicAck(deliveryTag, false), timeout, cancelToken);
+        }
+
         public void BasicPublish(string exchange, string queueName, IBasicProperties messageProperties, Stream messageStream, TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();

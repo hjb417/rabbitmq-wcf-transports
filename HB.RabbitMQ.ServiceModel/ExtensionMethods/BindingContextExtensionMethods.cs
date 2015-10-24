@@ -31,7 +31,7 @@ namespace HB
             var collection = bindingContext.BindingParameters.FindAll<MessageEncodingBindingElement>();
             if (collection.Count > 1)
             {
-                throw new InvalidOperationException("There are multiple message encoders.");
+                throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext.");
             }
             if (collection.Count == 1)
             {

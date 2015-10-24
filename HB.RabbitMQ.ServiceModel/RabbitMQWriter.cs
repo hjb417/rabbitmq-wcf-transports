@@ -60,6 +60,16 @@ namespace HB.RabbitMQ.ServiceModel
             }
         }
 
+        public void AcknowledgeMessage(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            MethodInvocationTrace.Write();
+            using (_invocationTracker.TrackOperation())
+            using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancelToken, _invocationTracker.Token))
+            {
+                _conn.BasicAck(deliveryTag, timeout, cancelTokenSource.Token);
+            }
+        }
+
         public void Enqueue(string exchange, string queueName, Stream messageStream, TimeSpan timetoLive, TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();

@@ -119,8 +119,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                 try
                 {
                     queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
-                    var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
-                    return new RabbitMQTaskQueueRequestContext(request, Binding, LocalAddress, MessageEncoderFactory, _bufferMgr, queueWriter);
+                    ulong deliveryTag;
+                    var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, out deliveryTag);
+                    return new RabbitMQTaskQueueRequestContext(request, Binding, LocalAddress, MessageEncoderFactory, _bufferMgr, queueWriter, deliveryTag);
                 }
                 catch (OperationCanceledException)
                 {

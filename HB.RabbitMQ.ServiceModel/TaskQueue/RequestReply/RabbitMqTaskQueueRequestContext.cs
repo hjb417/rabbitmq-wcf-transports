@@ -36,10 +36,12 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         private readonly EndpointAddress _replyToAddress;
         private readonly MessageEncoderFactory _msgEncoderFactory;
         private readonly BufferManager _bufferMgr;
+        private readonly ulong _deliveryTag;
 
-        public RabbitMQTaskQueueRequestContext(Message requestMessage, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, MessageEncoderFactory msgEncoderFactory, BufferManager bufferManager, IRabbitMQWriter queueWriter)
+        public RabbitMQTaskQueueRequestContext(Message requestMessage, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, MessageEncoderFactory msgEncoderFactory, BufferManager bufferManager, IRabbitMQWriter queueWriter, ulong deliveryTag)
         {
             _opMgr = new ConcurrentOperationManager(GetType().FullName);
+            _deliveryTag = deliveryTag;
             _bufferMgr = bufferManager;
             _msgEncoderFactory = msgEncoderFactory;
             _replyToAddress = localAddress;
@@ -89,13 +91,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         public override void Reply(Message message, TimeSpan timeout)
         {
             MethodInvocationTrace.Write();
-            if (message == null)
-            {
-                return;
-            }
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             using (_opMgr.TrackOperation())
             {
+                if (message == null)
+                {
+                    return;
+                }
+                _queueWriter.AcknowledgeMessage(_deliveryTag, timeoutTimer.RemainingTime, _opMgr.Token);
                 var remoteAddress = new RabbitMQTaskQueueUri(RequestMessage.Headers.ReplyTo.Uri.ToString());
                 message.Headers.From = _replyToAddress;
                 message.Headers.ReplyTo = _replyToAddress;
