@@ -23,23 +23,30 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
-namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
+namespace HB.RabbitMQ.ServiceModel
 {
-    internal sealed class RabbitMQTaskQueueDuplexChannelFactory<TChannel> : RabbitMQTaskQueueChannelFactoryBase<TChannel>
-        where TChannel : IChannel
+    internal abstract class RabbitMQChannelListenerBase<TChannel> : ChannelListenerBase<TChannel>
+        where TChannel : class, IChannel
     {
-        public RabbitMQTaskQueueDuplexChannelFactory(BindingContext context, RabbitMQTransportBindingElement bingingElement, RabbitMQTaskQueueBinding binding)
-            : base(context, bingingElement, binding)
+        protected RabbitMQChannelListenerBase(IDefaultCommunicationTimeouts timeouts)
+            : base(timeouts)
         {
-            MethodInvocationTrace.Write();
         }
 
-        protected override TChannel OnCreateChannel(EndpointAddress remoteAddress, Uri via)
+        protected override sealed void OnAbort()
         {
             MethodInvocationTrace.Write();
-            var queueName = "c" + Guid.NewGuid().ToString("N");
-            var localAddress = RabbitMQTaskQueueUri.Create(queueName, Constants.DefaultExchange, true, true, Binding.QueueTimeToLive);
-            return (TChannel)(object)new RabbitMQTaskQueueClientDuplexChannel<TChannel>(Context, this, Binding, new EndpointAddress(localAddress), remoteAddress, BufferManager);
+            OnClose(TimeSpan.Zero, CloseReasons.Abort);
+        }
+
+        protected override sealed void OnClose(TimeSpan timeout)
+        {
+            MethodInvocationTrace.Write();
+            OnClose(timeout, CloseReasons.StateTransition);
+        }
+
+        protected virtual void OnClose(TimeSpan timeout, CloseReasons closeReason)
+        {
         }
     }
 }
