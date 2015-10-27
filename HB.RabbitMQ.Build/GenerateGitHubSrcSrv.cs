@@ -28,12 +28,14 @@ namespace HB.RabbitMQ.Build
 
                 var srcSrv = new StringBuilder();
                 srcSrv.AppendFormat(@"SRCSRV: ini ------------------------------------------------
-VERSION=2
-VERCTL=https
+VERSION=1
+INDEXVERSION=2
+VERCTL=Archive
+DATETIME={1}
 SRCSRV: variables ------------------------------------------
-SRCSRVVERCTRL=https
+SRCSRVVERCTRL=http
 SRCSRVTRG={0}%var2%
-SRCSRV: source files ---------------------------------------", httpAlias.Uri);
+SRCSRV: source files ---------------------------------------", httpAlias.Uri, DateTime.Now);
                 
                 foreach (var srcFile in SourceFiles)
                 {
