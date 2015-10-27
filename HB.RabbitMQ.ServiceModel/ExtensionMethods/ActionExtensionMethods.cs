@@ -23,7 +23,7 @@ using System;
 
 namespace HB
 {
-    public static class ActionExtensionMethods
+    internal static class ActionExtensionMethods
     {
         public static void TryInvoke<T>(this Action<T> action, T obj)
         {

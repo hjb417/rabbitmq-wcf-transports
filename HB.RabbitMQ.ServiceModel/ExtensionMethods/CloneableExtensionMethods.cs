@@ -23,7 +23,7 @@ using System;
 
 namespace HB
 {
-    public static class CloneableExtensionMethods
+    internal static class CloneableExtensionMethods
     {
         public static TCloneable Clone<TCloneable>(this TCloneable cloneable)
             where TCloneable : ICloneable

@@ -24,7 +24,7 @@ using System.Threading;
 
 namespace HB
 {
-    public static class TimeSpanExtensionMethods
+    internal static class TimeSpanExtensionMethods
     {
         public static int ToMillisecondsTimeout(this TimeSpan timeSpan)
         {

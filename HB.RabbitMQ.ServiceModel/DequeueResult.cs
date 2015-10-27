@@ -24,7 +24,7 @@ using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel
 {
-    public sealed class DequeueResult
+    internal sealed class DequeueResult
     {
         public DequeueResult(ulong deliveryTag, bool redelivered, string exchange, string routingKey, uint messageCount, IBasicProperties basicProperties, Stream body)
         {

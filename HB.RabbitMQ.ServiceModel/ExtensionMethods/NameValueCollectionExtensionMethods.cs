@@ -26,7 +26,7 @@ using System.Web;
 
 namespace HB
 {
-    public static class NameValueCollectionExtensionMethods
+    internal static class NameValueCollectionExtensionMethods
     {
         public static bool ContainsKey(this NameValueCollection nameValueCollection, string key)
         {

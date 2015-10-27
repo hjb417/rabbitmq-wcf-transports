@@ -23,7 +23,7 @@ using System.IO;
 
 namespace HB
 {
-    public static class StreamExtensionMethods
+    internal static class StreamExtensionMethods
     {
         public static byte[] CopyToByteArray(this Stream stream)
         {

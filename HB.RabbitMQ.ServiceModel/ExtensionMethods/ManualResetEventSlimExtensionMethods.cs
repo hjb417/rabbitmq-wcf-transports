@@ -25,7 +25,7 @@ using System.Threading;
 
 namespace HB
 {
-    public static class ManualResetEventSlimExtensionMethods
+    internal static class ManualResetEventSlimExtensionMethods
     {
         public static bool TrySet(this ManualResetEventSlim manualResetEventSlim)
         {
