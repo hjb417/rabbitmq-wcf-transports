@@ -22,6 +22,7 @@ THE SOFTWARE.
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Threading;
 using System.Xml;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
@@ -37,10 +38,15 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         private readonly MessageEncoderFactory _msgEncoderFactory;
         private readonly BufferManager _bufferMgr;
         private readonly ulong _deliveryTag;
+        private readonly IDisposable _readerHandle;
+        private readonly IRabbitMQReader _queueReader;
+        private volatile bool _replySent;
 
-        public RabbitMQTaskQueueRequestContext(Message requestMessage, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, MessageEncoderFactory msgEncoderFactory, BufferManager bufferManager, IRabbitMQWriter queueWriter, ulong deliveryTag)
+        public RabbitMQTaskQueueRequestContext(Message requestMessage, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, MessageEncoderFactory msgEncoderFactory, BufferManager bufferManager, IRabbitMQWriter queueWriter, ulong deliveryTag, IRabbitMQReader queueReader, IDisposable readerHandle)
         {
             _opMgr = new ConcurrentOperationManager(GetType().FullName);
+            _queueReader = queueReader;
+            _readerHandle = readerHandle;
             _deliveryTag = deliveryTag;
             _bufferMgr = bufferManager;
             _msgEncoderFactory = msgEncoderFactory;
@@ -81,11 +87,30 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             MethodInvocationTrace.Write();
             _opMgr.Dispose();
             _queueWriter.Dispose();
+            _readerHandle.Dispose();
         }
 
         public override void Close()
         {
             Close(_binding.CloseTimeout);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                base.Dispose(disposing);
+                return;
+            }
+            if (_replySent)
+            {
+                Close();
+            }
+            else
+            {
+                Abort();
+            }
+            base.Dispose(disposing);
         }
 
         public override void Reply(Message message, TimeSpan timeout)
@@ -94,16 +119,18 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             using (_opMgr.TrackOperation())
             {
+                _queueReader.AcknowledgeMessage(_deliveryTag, TimeSpan.MaxValue, CancellationToken.None);
                 if (message == null)
                 {
+                    _replySent = true;
                     return;
                 }
-                _queueWriter.AcknowledgeMessage(_deliveryTag, timeoutTimer.RemainingTime, _opMgr.Token);
                 var remoteAddress = new RabbitMQTaskQueueUri(RequestMessage.Headers.ReplyTo.Uri.ToString());
                 message.Headers.From = _replyToAddress;
                 message.Headers.ReplyTo = _replyToAddress;
                 message.Headers.MessageId = new UniqueId();
                 _queueWriter.Enqueue(remoteAddress.Exchange, remoteAddress.QueueName, message, _bufferMgr, _binding, _msgEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, _opMgr.Token);
+                _replySent = true;
             }
         }
 
