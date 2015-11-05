@@ -19,23 +19,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
+
 namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {
-    internal static class BindingPropertyNames
+    [Serializable]
+    public enum MessageConfirmationModes
     {
-        public const string HostName = "hostName";
-        public const string Port = "port";
-        public const string Password = "password";
-        public const string UserName = "username";
-        public const string VirtualHost = "virtualHost";
-        public const string Protocol = "protocol";
-        public const string MaxBufferPoolSize = "maxBufferPoolSize";
-        public const string MaxReceivedMessageSize = "maxReceivedMessageSize";
-        public const string QueueTimeToLive = "queueTimeToLive";
-        public const string WriterOptions = "writerOptions";
-        public const string ReaderOptions = "readerOptions";
-        public const string IncludeProcessCommandLineInMessageHeaders = "includeProcessCommandLineInMessageHeaders";
-        public const string AutoCreateServerQueue = "autoCreateServerQueue";
-        public const string MessageConfirmationMode = "messageConfirmationMode";
+        BeforeReply,
+        AfterReceive,
     }
 }

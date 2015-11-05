@@ -88,6 +88,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { base[BindingPropertyNames.QueueTimeToLive] = value; }
         }
 
+        [ConfigurationProperty(BindingPropertyNames.MessageConfirmationMode, DefaultValue = MessageConfirmationModes.BeforeReply)]
+        public MessageConfirmationModes MessageConfirmationMode
+        {
+            get { return ((MessageConfirmationModes)base[BindingPropertyNames.MessageConfirmationMode]); }
+            set { base[BindingPropertyNames.MessageConfirmationMode] = value; }
+        }        
+
         [ConfigurationProperty(BindingPropertyNames.Password, DefaultValue = DefaultValues.Password)]
         public string Password
         {
@@ -142,6 +149,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;
             rb.QueueTimeToLive = QueueTimeToLive;
+            rb.MessageConfirmationMode = MessageConfirmationMode;
             rb.AutoCreateServerQueue = AutoCreateServerQueue;
             rb.ConnectionFactory = new ConnectionFactory
             {

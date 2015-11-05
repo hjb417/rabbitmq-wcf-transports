@@ -22,6 +22,7 @@ THE SOFTWARE.
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Threading;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
 {
@@ -121,6 +122,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                     queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
                     ulong deliveryTag;
                     var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, out deliveryTag);
+                    if (Binding.MessageConfirmationMode == MessageConfirmationModes.AfterReceive)
+                    {
+                        _queueReader.AcknowledgeMessage(deliveryTag, TimeSpan.MaxValue, CancellationToken.None);
+                    }
                     return new RabbitMQTaskQueueRequestContext(request, Binding, LocalAddress, MessageEncoderFactory, _bufferMgr, queueWriter, deliveryTag, _queueReader, ConcurrentOperationManager.TrackOperation());
                 }
                 catch (OperationCanceledException)

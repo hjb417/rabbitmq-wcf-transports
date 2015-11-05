@@ -119,7 +119,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             using (_opMgr.TrackOperation())
             {
-                _queueReader.AcknowledgeMessage(_deliveryTag, TimeSpan.MaxValue, CancellationToken.None);
+                if (_binding.MessageConfirmationMode == MessageConfirmationModes.BeforeReply)
+                {
+                    _queueReader.AcknowledgeMessage(_deliveryTag, TimeSpan.MaxValue, CancellationToken.None);
+                }
                 if (message == null)
                 {
                     _replySent = true;

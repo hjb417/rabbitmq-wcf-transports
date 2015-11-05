@@ -33,6 +33,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private RabbitMQWriterOptions _writerOptions = new RabbitMQWriterOptions();
         private TimeSpan? _ttl = TimeSpan.FromMinutes(20);
         private IRabbitMQReaderWriterFactory _queueRwFactory = RabbitMQReaderWriterFactory.Instance;
+        private MessageConfirmationModes _confMode = MessageConfirmationModes.BeforeReply;
 
         public RabbitMQTaskQueueBinding()
         {
@@ -72,6 +73,12 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
             get { return _ttl; }
             set { _ttl = value; }
+        }
+
+        public MessageConfirmationModes MessageConfirmationMode
+        {
+            get { return _confMode; }
+            set { _confMode = value; }
         }
 
         public bool AutoCreateServerQueue { get; set; }
