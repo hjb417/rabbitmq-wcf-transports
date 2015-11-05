@@ -1,4 +1,5 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  
   <PropertyGroup>
     <Configuration Condition="$(Configuration) == ''">Release</Configuration>
     <ProjectPath>$(MSBuildProjectDirectory)\HB.RabbitMQ.ServiceModel\HB.RabbitMQ.ServiceModel.csproj</ProjectPath>
@@ -6,6 +7,7 @@
     <SrcSrvPath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.Guid]::NewGuid()).ssp))</SrcSrvPath>
   </PropertyGroup>
   <UsingTask TaskName="GenerateGitHubSrcSrv" AssemblyFile="$(MSBuildProjectDirectory)\HB.RabbitMQ.Build\bin\debug\HB.RabbitMQ.Build.dll" />
+  
   <Target Name="Build">
     <MSBuild Projects="$(BuildProjectPath)" Properties="Configuration=Debug" Targets="Build"/>
     <MSBuild Projects="$(ProjectPath)" Properties="Configuration=$(Configuration)" Targets="Build"/>
