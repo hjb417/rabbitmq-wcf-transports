@@ -28,6 +28,7 @@ namespace HB.RabbitMQ.ServiceModel
         {
             public const string IncludeProcessCommandLineInQueueArguments = "includeProcessCommandLineInQueueArguments";
             public const string DequeueThrottlerFactory = "dequeueThrottlerFactory";
+            public const string ConsumerPriority = "consumerPriority";
         }
     }
 }

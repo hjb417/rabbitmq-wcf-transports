@@ -42,6 +42,13 @@ namespace HB.RabbitMQ.ServiceModel
             set { base[BindingPropertyNames.DequeueThrottlerFactory] = value; }
         }
 
+        [ConfigurationProperty(BindingPropertyNames.ConsumerPriority, DefaultValue = DefaultValues.ConsumerPriority)]
+        public int? ConsumerPriority
+        {
+            get { return ((int?)base[BindingPropertyNames.ConsumerPriority]); }
+            set { base[BindingPropertyNames.ConsumerPriority] = value; }
+        }
+
         protected override ConfigurationPropertyCollection Properties
         {
             get
@@ -61,10 +68,10 @@ namespace HB.RabbitMQ.ServiceModel
         internal void ApplyConfiguration(RabbitMQReaderOptions readerOptions)
         {
             readerOptions.IncludeProcessCommandLineInQueueArguments = IncludeProcessCommandLineInQueueArguments;
-            if (DequeueThrottlerFactory != null)
-            {
-                readerOptions.DequeueThrottlerFactory = (IDequeueThrottlerFactory) Activator.CreateInstance(DequeueThrottlerFactory);
-            }
+            readerOptions.DequeueThrottlerFactory = DequeueThrottlerFactory == null
+                ? null
+                : (IDequeueThrottlerFactory)Activator.CreateInstance(DequeueThrottlerFactory);
+            readerOptions.ConsumerPriority = ConsumerPriority;
         }
     }
 }
