@@ -80,11 +80,14 @@ namespace HB.RabbitMQ.ServiceModel
             {
                 args.Add("x-max-priority", _maxPriority.Value);
             }
-            if (_options.ConsumerPriority.HasValue)
+            if (_isDurable)
             {
-                args.Add("x-priority", _options.ConsumerPriority.Value);
+                model.QueueDeclare(_queueName, true, false, false, args);
             }
-            model.QueueDeclare(_queueName, true, false, !_isDurable, args);
+            else
+            {
+                model.QueueDeclare(_queueName, true, false, true, args);
+            }
             Debug.WriteLine("{0}-{1}: Declared queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _queueName);
             model.QueueBind(_queueName, _exchange, _queueName);
             Debug.WriteLine("{0}-{1}: Bound to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _queueName);

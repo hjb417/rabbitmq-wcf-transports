@@ -37,11 +37,9 @@ namespace HB.RabbitMQ.ServiceModel
         {
             IncludeProcessCommandLineInQueueArguments = rabbitMQReaderOptions.IncludeProcessCommandLineInQueueArguments;
             DequeueThrottlerFactory = rabbitMQReaderOptions.DequeueThrottlerFactory;
-            ConsumerPriority = rabbitMQReaderOptions.ConsumerPriority;
         }
 
         public bool IncludeProcessCommandLineInQueueArguments { get; set; }
-        public int? ConsumerPriority { get; set; }
 
         public IDequeueThrottlerFactory DequeueThrottlerFactory
         {
