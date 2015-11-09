@@ -78,7 +78,7 @@ namespace HB.RabbitMQ.ServiceModel
                 _isDisposed = true;
                 if (Interlocked.CompareExchange(ref _waitForCountdown, 0, 1) == 1)
                 {
-                    _cancelTokenSource.Cancel();
+                    _cancelTokenSource.TryCancel();
                     _usageCountdown.Signal();
                     _usageCountdown.Wait();
                 }

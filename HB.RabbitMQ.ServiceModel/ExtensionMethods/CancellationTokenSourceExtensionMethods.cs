@@ -28,6 +28,17 @@ namespace HB
 {
     internal static class CancellationTokenSourceExtensionMethods
     {
+        public static void TryCancel(this CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                cancellationTokenSource.Cancel();
+            }
+            catch(ObjectDisposedException)
+            {
+            }
+        }
+
         public static void CancelAfter(this CancellationTokenSource cancellationTokenSource, TimeSpan delay)
         {
             Timer timer = null;
