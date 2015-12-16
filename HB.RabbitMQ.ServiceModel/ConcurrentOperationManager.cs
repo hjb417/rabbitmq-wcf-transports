@@ -78,12 +78,13 @@ namespace HB.RabbitMQ.ServiceModel
                 _isDisposed = true;
                 if (Interlocked.CompareExchange(ref _waitForCountdown, 0, 1) == 1)
                 {
-                    _cancelTokenSource.TryCancel();
+                    _cancelTokenSource.Cancel();
                     _usageCountdown.Signal();
                     _usageCountdown.Wait();
+
+                    _cancelTokenSource.Dispose();
+                    _usageCountdown.Dispose();
                 }
-                _cancelTokenSource.Dispose();
-                _usageCountdown.Dispose();
             }
         }
 
