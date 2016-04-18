@@ -16,6 +16,6 @@
     <tags>RabbitMQ WCF</tags>
   </metadata>
   <files>
-    <file src="bin\$configuration$\HB.RabbitMQ.ServiceModel.pdb" target="lib\net40\" />
+    <file src="bin\$configuration$\HB.RabbitMQ.ServiceModel.pdb" target="lib\net45\" />
   </files>
 </package>
