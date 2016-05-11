@@ -21,26 +21,23 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Principal;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
 {
-    internal static class DictionaryExtensionMethods
+    [Serializable]
+    public class ApplicationPoolListenerChannelInstanceEventArgs : EventArgs
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public ApplicationPoolListenerChannelInstanceEventArgs(string applicationPoolId, int listenerChannelId)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+            ApplicationPoolId = applicationPoolId;
+            ListenerChannelId = listenerChannelId;
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
-        {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
-        }
+        public string ApplicationPoolId { get; }
+        public int ListenerChannelId { get; }
     }
 }

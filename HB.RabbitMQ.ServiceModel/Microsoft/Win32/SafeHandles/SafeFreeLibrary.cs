@@ -21,26 +21,24 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HB.RabbitMQ.ServiceModel.Activation.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Activation.Microsoft.Win32.SafeHandles
 {
-    internal static class DictionaryExtensionMethods
+    internal sealed class SafeFreeLibrary : SafeHandleZeroOrMinusOneIsInvalid
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public SafeFreeLibrary()
+            : base(true)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        protected override bool ReleaseHandle()
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
+            return NativeMethods.FreeLibrary(handle);
         }
     }
 }

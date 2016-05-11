@@ -20,27 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
 {
-    internal static class DictionaryExtensionMethods
+    [Serializable]
+    public class WindowsProcessActivationServiceDisconnectedEventArgs : EventArgs
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public WindowsProcessActivationServiceDisconnectedEventArgs(Win32Exception error)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+            DisconnectError = error;
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
-        {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
-        }
+        public Win32Exception DisconnectError { get; }
     }
 }

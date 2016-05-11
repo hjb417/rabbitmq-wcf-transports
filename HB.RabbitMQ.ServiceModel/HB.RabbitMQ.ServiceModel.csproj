@@ -35,6 +35,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Web.Administration, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Web.Administration.7.0.0.0\lib\net20\Microsoft.Web.Administration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="RabbitMQ.Client, Version=3.6.1.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
       <HintPath>..\packages\RabbitMQ.Client.3.6.1\lib\net45\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
@@ -44,6 +48,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Activation" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -52,6 +57,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activation\ListenerAdapter\ApplicationAppPoolChangedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationBindingsChangedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationCreatedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationDeletedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolCreatedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolDeletedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolIdentityChanged.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolIdentityChangedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolListenerChannelInstanceEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolStateChangedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationPoolStates.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationRequestBlockedStateChangedEventArgs.cs" />
+    <Compile Include="Activation\ListenerAdapter\ApplicationRequestsBlockedStates.cs" />
+    <Compile Include="Activation\ListenerAdapter\ListenerAdapter.cs" />
+    <Compile Include="Activation\ListenerAdapter\WindowsProcessActivationServiceDisconnectedEventArgs.cs" />
+    <Compile Include="PredeclaredExchangeNames.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+ApplicationInfo.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+ApplicationPoolInfo.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+RabbitMQMessageListener.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter.cs" />
     <Compile Include="DequeueResult.cs" />
     <Compile Include="CloseReasons.cs" />
     <Compile Include="ConcurrentOperationManager+OperationContext.cs" />
@@ -61,7 +86,6 @@
     <Compile Include="ExtensionMethods\CancellationTokenSourceExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\CloneableExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\DictionaryExtensionMethods.cs" />
-    <Compile Include="ExtensionMethods\ManualResetEventSlimExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\NameValueCollectionExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\RabbitMessageQueueReaderExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\RabbitMessageQueueWriterExtensionMethods.cs" />
@@ -74,6 +98,7 @@
     <Compile Include="MessageHeaders.cs" />
     <Compile Include="MessageNotAcknowledgedByBrokerException.cs" />
     <Compile Include="MethodInvocationTrace.cs" />
+    <Compile Include="Microsoft\Win32\SafeHandles\SafeFreeLibrary.cs" />
     <Compile Include="RabbitMQReaderOptions.cs" />
     <Compile Include="RabbitMQReaderOptionsBindingElement+BindingPropertyNames.cs" />
     <Compile Include="RabbitMQReaderOptionsBindingElement+DefaultValues.cs" />
@@ -91,6 +116,33 @@
     <Compile Include="RabbitMQWriterOptionsBindingElement.cs" />
     <Compile Include="ReaderQueueArguments.cs" />
     <Compile Include="RemoteQueueDoesNotExistException.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationAppPoolChanged.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationBindingsChanged.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationCreated.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationDeleted.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationPoolAllListenerChannelInstancesStopped.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationPoolCanOpenNewListenerChannelInstance.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationPoolCreated.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationPoolDeleted.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationPoolIdentityChanged.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationPoolStateChanged.cs" />
+    <Compile Include="Runtime\InteropServices\ApplicationRequestsBlockedChanged.cs" />
+    <Compile Include="Runtime\InteropServices\ConfigManagerConnected.cs" />
+    <Compile Include="Runtime\InteropServices\ConfigManagerConnectRejected.cs" />
+    <Compile Include="Runtime\InteropServices\ConfigManagerDisconnected.cs" />
+    <Compile Include="Runtime\InteropServices\ConfigManagerInitializationCompleted.cs" />
+    <Compile Include="Runtime\InteropServices\HRESULT.cs" />
+    <Compile Include="Runtime\InteropServices\ListenerAdapter.cs" />
+    <Compile Include="Runtime\InteropServices\LoadLibraryFlags.cs" />
+    <Compile Include="Runtime\InteropServices\NativeMethods.cs" />
+    <Compile Include="Runtime\InteropServices\ServiceState.cs" />
+    <Compile Include="Runtime\InteropServices\ServiceStatus.cs" />
+    <Compile Include="Runtime\InteropServices\WebhostCloseAllListenerChannelInstances.cs" />
+    <Compile Include="Runtime\InteropServices\WebhostListenerCallbacks.cs" />
+    <Compile Include="Runtime\InteropServices\WebhostOpenListenerChannelInstance.cs" />
+    <Compile Include="Runtime\InteropServices\WebHostProtocolSafeHandle.cs" />
+    <Compile Include="Runtime\InteropServices\WebhostRegisterProtocol.cs" />
+    <Compile Include="Runtime\InteropServices\WebhostUnregisterProtocol.cs" />
     <Compile Include="TaskQueue\Duplex\Actions.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CloseSessionRequest.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CreateSessionRequest.cs" />
@@ -111,6 +163,7 @@
     <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueReplyChannel.cs" />
     <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueRequestChannelFactory.cs" />
     <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueRequestContext.cs" />
+    <Compile Include="Threading\Tasks\Schedulers\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Throttling\ThrottleResult.cs" />
     <Compile Include="TimeSpanHelper.cs" />
     <Compile Include="TryReceiveRequestDelegate.cs" />

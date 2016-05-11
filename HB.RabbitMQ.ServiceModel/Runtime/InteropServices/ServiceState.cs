@@ -21,26 +21,22 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Activation.Runtime.InteropServices
 {
-    internal static class DictionaryExtensionMethods
+    [Serializable]
+    internal enum ServiceState
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-        {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
-        }
-
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
-        {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
-        }
+        Stopped = 0x00000001,
+        StartPending = 0x00000002,
+        StopPending = 0x00000003,
+        Running = 0x00000004,
+        ContinuePending = 0x00000005,
+        PausePending = 0x00000006,
+        Paused = 0x00000007,
     }
+
 }

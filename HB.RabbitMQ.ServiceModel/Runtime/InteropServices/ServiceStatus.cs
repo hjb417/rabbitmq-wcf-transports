@@ -20,25 +20,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Diagnostics;
-using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Activation.Runtime.InteropServices
 {
-    internal static class ManualResetEventSlimExtensionMethods
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ServiceStatus
     {
-        public static bool TrySet(this ManualResetEventSlim manualResetEventSlim)
+        public long ServiceType;
+        public ServiceState CurrentState;
+        public long ControlsAccepted;
+        public long Win32ExitCode;
+        public long ServiceSpecificExitCode;
+        public long CheckPoint;
+        private long dwWaitHint;
+
+        public TimeSpan WaitHint
         {
-            try
-            {
-                manualResetEventSlim.Set();
-                return true;
-            }
-            catch(Exception e)
-            {
-                Trace.TraceWarning("[{1}] Failed to set ManualResetEventSlim. {0}", e, typeof(ManualResetEventSlimExtensionMethods));
-                return false;
-            }
+            get { return TimeSpan.FromMilliseconds(dwWaitHint); }
+            set { dwWaitHint = (long)Math.Round(value.TotalMilliseconds, MidpointRounding.AwayFromZero); }
         }
-    }
+    };
 }

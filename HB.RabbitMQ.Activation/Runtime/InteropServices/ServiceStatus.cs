@@ -21,26 +21,29 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB
+namespace HB.RabbitMQ.Activation.Runtime.InteropServices
 {
-    internal static class DictionaryExtensionMethods
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ServiceStatus
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-        {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
-        }
+        public long ServiceType;
+        public ServiceState CurrentState;
+        public long ControlsAccepted;
+        public long Win32ExitCode;
+        public long ServiceSpecificExitCode;
+        public long CheckPoint;
+        private long dwWaitHint;
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        public TimeSpan WaitHint
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
+            get { return TimeSpan.FromMilliseconds(dwWaitHint); }
+            set { dwWaitHint = (long)Math.Round(value.TotalMilliseconds, MidpointRounding.AwayFromZero); }
         }
-    }
+    };
 }

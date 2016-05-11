@@ -19,28 +19,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-using System;
-using System.Collections.Generic;
+using System.Web.Hosting;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 {
-    internal static class DictionaryExtensionMethods
+    public sealed class RabbitMQTaskQueueAppDomainProtocolHandler : AppDomainProtocolHandler
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        private IListenerChannelCallback _listenerChannelCallback;
+
+        public RabbitMQTaskQueueAppDomainProtocolHandler()
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        public override void StartListenerChannel(IListenerChannelCallback listenerChannelCallback)
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
+            _listenerChannelCallback = listenerChannelCallback;
+            listenerChannelCallback.ReportStarted();
+        }
+
+        public override void StopListenerChannel(int listenerChannelId, bool immediate)
+        {
+            _listenerChannelCallback.ReportStopped(0);
+        }
+
+        public override void StopProtocol(bool immediate)
+        {
+            _listenerChannelCallback.ReportStopped(0);
+            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

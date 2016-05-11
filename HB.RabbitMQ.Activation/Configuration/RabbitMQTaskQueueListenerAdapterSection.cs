@@ -21,26 +21,24 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB
+namespace HB.RabbitMQ.Activation.Configuration
 {
-    internal static class DictionaryExtensionMethods
+    public class RabbitMQTaskQueueListenerAdapterSection : ConfigurationSection
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public RabbitMQTaskQueueListenerAdapterSection()
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
         }
-
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        
+        [ConfigurationProperty(RabbitMQTaskQueueListenerAdapterSectionAttributes.Connection)]
+        public ConnectionElement Connection
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
+            get { return (ConnectionElement)this[RabbitMQTaskQueueListenerAdapterSectionAttributes.Connection]; }
+            set { this[RabbitMQTaskQueueListenerAdapterSectionAttributes.Connection] = value; }
         }
     }
 }

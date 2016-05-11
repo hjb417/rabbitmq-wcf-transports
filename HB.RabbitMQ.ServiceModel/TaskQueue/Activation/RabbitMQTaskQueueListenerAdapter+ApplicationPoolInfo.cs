@@ -21,26 +21,25 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    internal static class DictionaryExtensionMethods
+    partial class RabbitMQTaskQueueListenerAdapter
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        private sealed class ApplicationPoolInfo
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
-        }
-
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
-        {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
+            public ApplicationPoolInfo(string name)
             {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
+                Name = Name;
+                State = ApplicationPoolStates.Disabled;
             }
-            return value;
+
+            public string Name { get; }
+            public ApplicationPoolStates State { get; set; }
         }
     }
 }

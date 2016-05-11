@@ -20,27 +20,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
-namespace HB
+namespace HB.RabbitMQ.Activation.Runtime.InteropServices
 {
-    internal static class DictionaryExtensionMethods
+
+    internal static class NativeMethods
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        [DllImport("advapi32", SetLastError = true)]
+        private static extern bool _SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
+
+        [DllImport("advapi32", SetLastError = true)]
+        private static extern bool _QueryServiceStatus(IntPtr handle, out ServiceStatus serviceStatus);
+
+        public static void SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+            if(!_SetServiceStatus(handle, ref serviceStatus))
+            {
+                throw new Win32Exception();
+            }
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        public static ServiceStatus QueryServiceStatus(IntPtr handle)
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
+            ServiceStatus status;
+            if (!_QueryServiceStatus(handle, out status))
             {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
+                throw new Win32Exception();
             }
-            return value;
+            return status;
         }
     }
 }

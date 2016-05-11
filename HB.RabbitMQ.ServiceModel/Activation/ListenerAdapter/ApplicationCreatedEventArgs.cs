@@ -21,26 +21,31 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Policy;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
 {
-    internal static class DictionaryExtensionMethods
+    [Serializable]
+    public class ApplicationCreatedEventArgs : EventArgs
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public ApplicationCreatedEventArgs(string applicationKey, string url, int siteId, string applicationPoolId, IEnumerable<string> bindings, ApplicationRequestsBlockedStates requestsBlockedState)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+            ApplicationKey = applicationKey;
+            Url = url;
+            SiteId = siteId;
+            ApplicationPoolName = applicationPoolId;
+            Bindings = bindings;
+            RequestsBlockedState = requestsBlockedState;
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
-        {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
-        }
+        public string ApplicationKey { get; }
+        public string ApplicationPoolName { get; }
+        public IEnumerable<string> Bindings { get; }
+        public ApplicationRequestsBlockedStates RequestsBlockedState { get; }
+        public int SiteId { get; }
+        public string Url { get; }
     }
 }

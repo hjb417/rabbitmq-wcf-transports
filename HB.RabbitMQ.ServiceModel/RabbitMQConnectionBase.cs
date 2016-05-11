@@ -196,45 +196,58 @@ namespace HB.RabbitMQ.ServiceModel
             var message = messageStream.CopyToByteArray();
             PerformAction(model =>
             {
-                using (var confirmEvent = new ManualResetEventSlim())
+                var confirmEvent = new ManualResetEventSlim();
+                Exception error = null;
+                int disposeEvent = 0;
+
+                Action setConfirmEvent = () =>
                 {
-                    Exception error = null;
-
-                    EventHandler<BasicAckEventArgs> ackCallback = delegate { confirmEvent.TrySet(); };
-                    EventHandler<BasicReturnEventArgs> returnCallback = delegate
+                    confirmEvent.Set();
+                    if (Interlocked.CompareExchange(ref disposeEvent, 1, 1) == 1)
                     {
-                        error = new RemoteQueueDoesNotExistException(exchange, queueName);
-                        confirmEvent.TrySet();
-                    };
-                    EventHandler<BasicNackEventArgs> nackCallback = delegate
-                    {
-                        error = new MessageNotAcknowledgedByBrokerException(exchange, queueName);
-                        confirmEvent.TrySet();
-                    };
-                    try
-                    {
-                        model.BasicAcks += ackCallback;
-                        model.BasicReturn += returnCallback;
-                        model.BasicNacks += nackCallback;
-
-                        Debug.WriteLine("{0}-{1}: Publishing message to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, queueName);
-                        model.BasicPublish(exchange, queueName, true, messageProperties, message);
-                        if (!confirmEvent.Wait(timer.RemainingTime.ToMillisecondsTimeout(), cancelToken))
-                        {
-                            throw new TimeoutException(string.Format("Failed to publish a message to the remote queue [{0}] on the exchange [{2}] within the time limit of {1}.", queueName, timeout, exchange));
-                        }
-                        if (error != null)
-                        {
-                            throw error;
-                        }
-                        Debug.WriteLine("{0}-{1}: Published message to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, queueName);
+                        confirmEvent.Dispose();
                     }
-                    finally
+                };
+
+                EventHandler<BasicAckEventArgs> ackCallback = delegate { setConfirmEvent(); };
+                EventHandler<BasicReturnEventArgs> returnCallback = delegate
+                {
+                    error = new RemoteQueueDoesNotExistException(exchange, queueName);
+                    setConfirmEvent();
+                };
+                EventHandler<BasicNackEventArgs> nackCallback = delegate
+                {
+                    error = new MessageNotAcknowledgedByBrokerException(exchange, queueName);
+                    setConfirmEvent();
+                };
+                try
+                {
+                    model.BasicAcks += ackCallback;
+                    model.BasicReturn += returnCallback;
+                    model.BasicNacks += nackCallback;
+
+                    Debug.WriteLine("{0}-{1}: Publishing message to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, queueName);
+                    model.BasicPublish(exchange, queueName, true, messageProperties, message);
+                    if (confirmEvent.Wait(timer.RemainingTime.ToMillisecondsTimeout(), cancelToken))
                     {
-                        model.BasicAcks -= ackCallback;
-                        model.BasicReturn -= returnCallback;
-                        model.BasicNacks -= nackCallback;
+                        confirmEvent.Dispose();
                     }
+                    else
+                    {
+                        Interlocked.Exchange(ref disposeEvent, 1);
+                        throw new TimeoutException(string.Format("Failed to publish a message to the remote queue [{0}] on the exchange [{2}] within the time limit of {1}.", queueName, timeout, exchange));
+                    }
+                    if (error != null)
+                    {
+                        throw error;
+                    }
+                    Debug.WriteLine("{0}-{1}: Published message to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, queueName);
+                }
+                finally
+                {
+                    model.BasicAcks -= ackCallback;
+                    model.BasicReturn -= returnCallback;
+                    model.BasicNacks -= nackCallback;
                 }
             }, timer.RemainingTime, cancelToken);
         }
