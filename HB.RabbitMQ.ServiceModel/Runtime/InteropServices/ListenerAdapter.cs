@@ -20,13 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using HB.RabbitMQ.ServiceModel.Activation.Microsoft.Win32.SafeHandles;
 
 namespace HB.RabbitMQ.ServiceModel.Activation.Runtime.InteropServices
