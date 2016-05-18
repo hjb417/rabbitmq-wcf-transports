@@ -19,12 +19,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-
-namespace HB.RabbitMQ.Activation.Configuration
+namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    internal sealed class RabbitMQTaskQueueListenerAdapterSectionAttributes
+    public class QueueDeletedEventArgs
     {
-        public const string ManagementUri = "managementUri";
-        public const string PollInterval = "pollInterval";
+        public QueueDeletedEventArgs(string queueName)
+        {
+            QueueName = queueName;
+        }
+
+        public string QueueName { get; }
     }
 }

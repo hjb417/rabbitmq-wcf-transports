@@ -19,12 +19,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB.RabbitMQ.Activation.Configuration
+namespace HB
 {
-    internal sealed class RabbitMQTaskQueueListenerAdapterSectionAttributes
+    public static class ConcurrentDictionaryExtensionMethods
     {
-        public const string ManagementUri = "managementUri";
-        public const string PollInterval = "pollInterval";
+        public static bool Remove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            TValue value;
+            return dictionary.TryRemove(key, out value);
+        }
+
+        public static void Add<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        {
+            if(!dictionary.TryAdd(key, value))
+            {
+                throw new ArgumentException("An element with the same key already exists.");
+            }
+        }
     }
 }

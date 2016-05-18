@@ -19,12 +19,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
+using System.Collections.Generic;
+using System.Net.Security;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Configuration;
+using System.Text;
 
-namespace HB.RabbitMQ.Activation.Configuration
+namespace HB.RabbitMQ.ServiceModel.Hosting.ServiceModel
 {
-    internal sealed class RabbitMQTaskQueueListenerAdapterSectionAttributes
+    public static class NetNamedPipeBindingFactory
     {
-        public const string ManagementUri = "managementUri";
-        public const string PollInterval = "pollInterval";
+        public static Binding Create()
+        {
+            var binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None);
+            binding.CloseTimeout = TimeSpan.MaxValue;
+            binding.MaxConnections = int.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
+            binding.OpenTimeout = TimeSpan.MaxValue;
+            binding.ReceiveTimeout = TimeSpan.MaxValue;
+            binding.SendTimeout = TimeSpan.MaxValue;
+            binding.TransactionFlow = false;
+            binding.Security.Transport.ProtectionLevel = ProtectionLevel.None;
+            return binding;
+        }
     }
 }

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HB.RabbitMQ.ServiceModel.Hosting</RootNamespace>
     <AssemblyName>HB.RabbitMQ.ServiceModel.Hosting</AssemblyName>
-    <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -37,19 +37,30 @@
     <AssemblyOriginatorKeyFile>HB.RabbitMQ.ServiceModel.Hosting.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.JScript" />
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExtensionMethods\ListenerChannelCallbackExtensionMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceModel\NetNamedPipeBindingFactory.cs" />
+    <Compile Include="TaskQueue\Constants.cs" />
     <Compile Include="TaskQueue\HostedRabbitMQTaskQueueTransportConfiguration.cs" />
+    <Compile Include="TaskQueue\WasInterop\IWasInteropService.cs" />
+    <Compile Include="TaskQueue\WasInterop\IWasInteropServiceCallback.cs" />
+    <Compile Include="TaskQueue\ListenerChannelManager.cs" />
+    <Compile Include="TaskQueue\ListenerChannelSetup.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueAppDomainProtocolHandler.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueProcessProtocolHandler.cs" />
+    <Compile Include="TaskQueue\WasInterop\WasInteropServiceCallback.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="HB.RabbitMQ.ServiceModel.Hosting.licenseheader" />
     <None Include="HB.RabbitMQ.ServiceModel.Hosting.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

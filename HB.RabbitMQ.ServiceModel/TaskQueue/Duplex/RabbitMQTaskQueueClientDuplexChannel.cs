@@ -25,6 +25,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
@@ -98,29 +99,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 
                     CloseOutputSession(closeSessionTimeout);
                 }
-                catch (TimeoutException e)
+                catch (Exception e) when(e is TimeoutException || e is ObjectDisposedException || e is OperationCanceledException)
                 {
                     if (closeReason != CloseReasons.Abort)
                     {
                         throw;
                     }
-                    Trace.TraceWarning("[{2}] Failed to close the output session to [{0}]. {1}", _remoteSessionUri, e, GetType());
-                }
-                catch (ObjectDisposedException e)
-                {
-                    if (closeReason != CloseReasons.Abort)
-                    {
-                        throw;
-                    }
-                    Trace.TraceWarning("[{2}] Failed to close the output session to [{0}]. {1}", _remoteSessionUri, e, GetType());
-                }
-                catch (OperationCanceledException e)
-                {
-                    if (closeReason != CloseReasons.Abort)
-                    {
-                        throw;
-                    }
-                    Trace.TraceWarning("[{2}] Failed to close the output session to [{0}]. {1}", _remoteSessionUri, e, GetType());
+                    TraceWarning($"Failed to close the output session to [{_remoteSessionUri}]. {e}", GetType());
                 }
             }
             base.OnClose(timeoutTimer.RemainingTime, closeReason);

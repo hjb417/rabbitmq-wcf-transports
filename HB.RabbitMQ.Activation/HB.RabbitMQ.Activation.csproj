@@ -61,8 +61,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\ConnectionElement.cs" />
-    <Compile Include="Configuration\ConnectionSectionAttributes.cs" />
     <Compile Include="Configuration\RabbitMQTaskQueueListenerAdapterSection.cs" />
     <Compile Include="Configuration\RabbitMQTaskQueueListenerAdapterSectionAttributes.cs" />
     <Compile Include="Program.cs" />
@@ -84,10 +82,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HB.RabbitMQ.ServiceModel.Hosting\HB.RabbitMQ.ServiceModel.Hosting.csproj">
-      <Project>{63632c06-1bb8-438f-8714-a5f66f86be76}</Project>
-      <Name>HB.RabbitMQ.ServiceModel.Hosting</Name>
-    </ProjectReference>
     <ProjectReference Include="..\HB.RabbitMQ.ServiceModel\HB.RabbitMQ.ServiceModel.csproj">
       <Project>{1acc030c-3071-4290-acd9-b76cb7a651bd}</Project>
       <Name>HB.RabbitMQ.ServiceModel</Name>

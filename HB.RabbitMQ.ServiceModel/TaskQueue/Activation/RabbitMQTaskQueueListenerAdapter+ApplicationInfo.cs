@@ -23,6 +23,7 @@ using System;
 using System.Text;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
+using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
@@ -37,14 +38,15 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
             public event EventHandler CanOpenNewListenerChannelInstanceChanged;
 
-            public ApplicationInfo(string applicationKey, string applicationPath, int siteId, string applicationPoolName, ApplicationPoolStates applicationPoolState, ApplicationRequestsBlockedStates requestsBlockedState)
+            public ApplicationInfo(string applicationKey, string applicationPath, int siteId, string applicationPoolName, ApplicationPoolStates applicationPoolState, ApplicationRequestsBlockedStates requestsBlockedState, Uri messagePublicationNotificationServiceUri)
             {
                 _requestsBlockedState = requestsBlockedState;
-                QueueBlob = Encoding.Unicode.GetBytes(applicationKey);
+                CreationTime = DateTimeOffset.Now;
                 ApplicationKey = applicationKey;
                 ApplicationPath = applicationPath;
                 ApplicationPoolName = applicationPoolName;
                 ApplicationPoolState = applicationPoolState;
+                ListenerChannelSetup = new ListenerChannelSetup(applicationKey, applicationPath, messagePublicationNotificationServiceUri);
                 ListenerChannelId = new Lazy<int>(() => Interlocked.Increment(ref _nextListenerChannelId));
                 SiteId = siteId;
                 UpdateCanOpenNewListenerChannelInstance();
@@ -53,7 +55,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
             public string ApplicationKey { get; }
             public string ApplicationPath { get; }
             public int SiteId { get; }
-            public byte[] QueueBlob { get; }
+            public DateTimeOffset CreationTime { get; }
+            public ListenerChannelSetup ListenerChannelSetup { get; }
             public string ApplicationPoolName { get; private set; }
             public ApplicationPoolStates ApplicationPoolState { get; private set; }
             public Lazy<int> ListenerChannelId { get; }

@@ -50,31 +50,7 @@ namespace HB.RabbitMQ.Activation
         {
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var adapter = (RabbitMQTaskQueueListenerAdapterSection)config.GetSection("rabbitMQTaskQueueListenerAdapter");
-            var conn = adapter.Connection;
-
-            var connFactory = new ConnectionFactory
-            {
-                HostName = conn.HostName,
-                UserName = conn.UserName,
-                Password = conn.Password,
-                UseBackgroundThreadsForIO = true,
-                RequestedHeartbeat = (ushort)conn.RequestedHeartbeat.TotalSeconds,
-            };
-            if (conn.AutomaticRecoveryEnabled.HasValue)
-            {
-                connFactory.AutomaticRecoveryEnabled = conn.AutomaticRecoveryEnabled.Value;
-            }
-            if (conn.TopologyRecoveryEnabled.HasValue)
-            {
-                connFactory.TopologyRecoveryEnabled = conn.TopologyRecoveryEnabled.Value;
-            }
-            if (conn.Port.HasValue)
-            {
-                connFactory.Port = conn.Port.Value;
-            }
-
-            RabbitMQTaskQueueListenerAdapter.InstallAdapter();
-            _adapter = new RabbitMQTaskQueueListenerAdapter(connFactory);
+            _adapter = new RabbitMQTaskQueueListenerAdapter(adapter.ManagementUri, adapter.PollInterval);
         }
 
         protected override void OnStop()

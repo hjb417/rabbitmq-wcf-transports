@@ -19,12 +19,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
+using System.Collections.Generic;
+using System.ServiceModel;
+using System.Text;
 
-namespace HB.RabbitMQ.Activation.Configuration
+namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
 {
-    internal sealed class RabbitMQTaskQueueListenerAdapterSectionAttributes
+    [ServiceContract(SessionMode = SessionMode.Required, CallbackContract = typeof(IWasInteropServiceCallback))]
+    public interface IWasInteropService
     {
-        public const string ManagementUri = "managementUri";
-        public const string PollInterval = "pollInterval";
+        [OperationContract(IsInitiating = true)]
+        void Register(int listenerChannelId, string applicationPath);
+
+        [OperationContract(IsOneWay = true, IsTerminating = true, IsInitiating = false)]
+        void Unregister(int listenerChannelId);
+
+        [OperationContract(IsOneWay = true, IsInitiating = false)]
+        void ServiceActivated(int listenerChannelId, string virtualPath);
     }
 }

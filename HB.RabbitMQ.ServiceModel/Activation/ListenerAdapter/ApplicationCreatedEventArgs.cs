@@ -30,7 +30,7 @@ namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
         public ApplicationCreatedEventArgs(string applicationKey, string url, int siteId, string applicationPoolId, IEnumerable<string> bindings, ApplicationRequestsBlockedStates requestsBlockedState)
         {
             ApplicationKey = applicationKey;
-            Url = url;
+            ApplicationVirtualPath = url;
             SiteId = siteId;
             ApplicationPoolName = applicationPoolId;
             Bindings = bindings;
@@ -42,6 +42,6 @@ namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
         public IEnumerable<string> Bindings { get; }
         public ApplicationRequestsBlockedStates RequestsBlockedState { get; }
         public int SiteId { get; }
-        public string Url { get; }
+        public string ApplicationVirtualPath { get; }
     }
 }

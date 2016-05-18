@@ -26,6 +26,7 @@ using System.IO;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.Throttling;
 using RabbitMQ.Client;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel
 {
@@ -129,7 +130,12 @@ namespace HB.RabbitMQ.ServiceModel
             {
                 try
                 {
-                    cancelTokenSource.CancelAfter(timeoutTimer.RemainingTime);
+                    var remTime = timeoutTimer.RemainingTime;
+                    if(remTime.TotalSeconds > int.MaxValue)
+                    {
+                        remTime = TimeSpan.FromMilliseconds(int.MaxValue);
+                    }
+                    cancelTokenSource.CancelAfter(remTime);
                     while (true)
                     {
                         if (_isDisposed)
@@ -209,7 +215,7 @@ namespace HB.RabbitMQ.ServiceModel
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceWarning("[{2}] Failed to dispose object of type [{0}]. {1}", GetType(), e, GetType());
+                    TraceWarning($"Failed to dispose object of type [{ GetType()}]. {e}", GetType());
                 }
             });
         }

@@ -20,33 +20,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    internal static class DictionaryExtensionMethods
+    partial class MessagePublicationNotificationService
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        private sealed class Client
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
-        }
+            private readonly ConcurrentDictionary<string, string> _activatedServices = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-            where TValue : new()
-        {
-            return dictionary.GetOrAdd(key, k => new TValue());
-        }
-
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
-        {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
+            public Client(IWasInteropServiceCallback callback, string applicationPath)
             {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
+                Callback = callback;
+                ApplicationPath = applicationPath;
             }
-            return value;
+
+            public IWasInteropServiceCallback Callback { get; }
+            public string ApplicationPath { get; }
+
+            public bool IsServiceActivated(string servicePath)
+            {
+                return _activatedServices.ContainsKey(servicePath);
+            }
+
+            public void AddActivatedService(string servicePath)
+            {
+                _activatedServices.TryAdd(servicePath, null);
+            }
         }
     }
 }

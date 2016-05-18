@@ -26,6 +26,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.Activation.Runtime.InteropServices;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
 {
@@ -87,11 +88,11 @@ namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
-            Trace.TraceInformation($"Registering the protocol [{_scheme}].");
+            TraceInformation($"Registering the protocol [{_scheme}].", GetType());
             _protocolHandle = Runtime.InteropServices.ListenerAdapter.RegisterProtocol(_scheme, ref _callbacks);
-            Trace.TraceInformation($"Waiting for the registration of the protocol [{_scheme}] to finish.");
+            TraceInformation($"Waiting for the registration of the protocol [{_scheme}] to finish.", GetType());
             _initCompleteEvent.Wait();
-            Trace.TraceInformation($"Registered the protocol [{_scheme}].");
+            TraceInformation($"Registered the protocol [{_scheme}].", GetType());
         }
 
         public void OpenListenerChannelInstance(string applicationPoolId, int listenerChannelId, byte[] queueBlob)
@@ -105,70 +106,70 @@ namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
 
         private void OnConfigManagerInitializationCompleted(IntPtr context)
         {
-            Trace.TraceInformation(nameof(OnConfigManagerInitializationCompleted));
+            TraceInformation(nameof(OnConfigManagerInitializationCompleted), GetType());
             _initCompleteEvent.Set();
         }
 
         private void OnConfigManagerDisconnected(IntPtr context, int hresult)
         {
-            Trace.TraceInformation($"{nameof(OnConfigManagerDisconnected)} [{nameof(hresult)}={hresult}]");
+            TraceInformation($"{nameof(OnConfigManagerDisconnected)} [{nameof(hresult)}={hresult}]", GetType());
             var error = (hresult == 0) ? null : new Win32Exception(hresult);
             WindowsProcessActivationServiceDisconnected?.Invoke(this, new WindowsProcessActivationServiceDisconnectedEventArgs(error));
         }
 
         private void OnConfigManagerConnected(IntPtr context)
         {
-            Trace.TraceInformation(nameof(OnConfigManagerConnected));
+            TraceInformation(nameof(OnConfigManagerConnected), GetType());
             WindowsProcessActivationServiceConnected?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnApplicationRequestsBlockedChanged(IntPtr context, string appKey, bool requestsBlocked)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationRequestsBlockedChanged)} [{nameof(appKey)}={appKey}, {nameof(requestsBlocked)}={requestsBlocked}]");
+            TraceInformation($"{nameof(OnApplicationRequestsBlockedChanged)} [{nameof(appKey)}={appKey}, {nameof(requestsBlocked)}={requestsBlocked}]", GetType());
             var state = requestsBlocked ? ApplicationRequestsBlockedStates.Blocked : ApplicationRequestsBlockedStates.Processsed;
             ApplicationRequestBlockedStateChanged?.Invoke(this, new ApplicationRequestBlockedStateChangedEventArgs(appKey, state));
         }
 
         private void OnApplicationPoolStateChanged(IntPtr context, string appPoolId, bool isEnabled)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationPoolStateChanged)} [{nameof(appPoolId)}={appPoolId}, {nameof(isEnabled)}={isEnabled}]");
+            TraceInformation($"{nameof(OnApplicationPoolStateChanged)} [{nameof(appPoolId)}={appPoolId}, {nameof(isEnabled)}={isEnabled}]", GetType());
             var state = isEnabled ? ApplicationPoolStates.Enabled : ApplicationPoolStates.Disabled;
             ApplicationPoolStateChanged?.Invoke(this, new ApplicationPoolStateChangedEventArgs(appPoolId, state));
         }
 
         private void OnApplicationPoolIdentityChanged(IntPtr context, string appPoolId, IntPtr sid)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationPoolIdentityChanged)} [{nameof(appPoolId)}={appPoolId}, {nameof(sid)}={sid}]");
+            TraceInformation($"{nameof(OnApplicationPoolIdentityChanged)} [{nameof(appPoolId)}={appPoolId}, {nameof(sid)}={sid}]", GetType());
             ApplicationPoolIdentityChanged?.Invoke(this, new ApplicationPoolIdentityChangedEventArgs(appPoolId, new SecurityIdentifier(sid)));
         }
 
         private void OnApplicationPoolDeleted(IntPtr context, string appPoolId)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationPoolDeleted)} [{nameof(appPoolId)}={appPoolId}]");
+            TraceInformation($"{nameof(OnApplicationPoolDeleted)} [{nameof(appPoolId)}={appPoolId}]", GetType());
             ApplicationPoolDeleted?.Invoke(this, new ApplicationPoolDeletedEventArgs(appPoolId));
         }
 
         private void OnApplicationPoolCreated(IntPtr context, string appPoolId, IntPtr sid)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationPoolCreated)} [{nameof(appPoolId)}={appPoolId}, {nameof(sid)}={sid}]");
+            TraceInformation($"{nameof(OnApplicationPoolCreated)} [{nameof(appPoolId)}={appPoolId}, {nameof(sid)}={sid}]", GetType());
             ApplicationPoolCreated?.Invoke(this, new ApplicationPoolCreatedEventArgs(appPoolId, new SecurityIdentifier(sid)));
         }
 
         private void OnApplicationPoolCanOpenNewListenerChannelInstance(IntPtr context, string appPoolId, int listenerChannelId)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationPoolCanOpenNewListenerChannelInstance)} [{nameof(appPoolId)}={appPoolId}, {nameof(listenerChannelId)}={listenerChannelId}]");
+            TraceInformation($"{nameof(OnApplicationPoolCanOpenNewListenerChannelInstance)} [{nameof(appPoolId)}={appPoolId}, {nameof(listenerChannelId)}={listenerChannelId}]", GetType());
             ApplicationPoolCanOpenNewListenerChannelInstance?.Invoke(this, new ApplicationPoolListenerChannelInstanceEventArgs(appPoolId, listenerChannelId));
         }
 
         private void OnApplicationPoolAllListenerChannelInstancesStopped(IntPtr context, string appPoolId, int listenerChannelId)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationPoolAllListenerChannelInstancesStopped)} [{nameof(appPoolId)}={appPoolId}, {nameof(listenerChannelId)}={listenerChannelId}]");
+            TraceInformation($"{nameof(OnApplicationPoolAllListenerChannelInstancesStopped)} [{nameof(appPoolId)}={appPoolId}, {nameof(listenerChannelId)}={listenerChannelId}]", GetType());
             ApplicationPoolListenerChannelInstancesStopped?.Invoke(this, new ApplicationPoolListenerChannelInstanceEventArgs(appPoolId, listenerChannelId));
         }
 
         private void OnApplicationDeleted(IntPtr context, string appKey)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationDeleted)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}]");
+            TraceInformation($"{nameof(OnApplicationDeleted)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}]", GetType());
             ApplicationDeleted?.Invoke(this, new ApplicationDeletedEventArgs(appKey));
         }
 
@@ -176,20 +177,20 @@ namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
         {
             var bindings = ParseBindings(bindingsMultiSz, numberOfBindings);
             var blockedState = requestsBlocked ? ApplicationRequestsBlockedStates.Blocked : ApplicationRequestsBlockedStates.Processsed;
-            Trace.TraceInformation($"{nameof(OnApplicationCreated)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}, {nameof(path)}={path}, {nameof(siteId)}={siteId}, {nameof(appPoolId)}={appPoolId}, {nameof(bindings)}={string.Join(",", bindings)}, {nameof(blockedState)}={blockedState}]");
+            TraceInformation($"{nameof(OnApplicationCreated)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}, {nameof(path)}={path}, {nameof(siteId)}={siteId}, {nameof(appPoolId)}={appPoolId}, {nameof(bindings)}={string.Join(",", bindings)}, {nameof(blockedState)}={blockedState}]", GetType());
             ApplicationCreated?.Invoke(this, new ApplicationCreatedEventArgs(appKey, path, siteId, appPoolId, bindings, blockedState));
         }
 
         private void OnApplicationBindingsChanged(IntPtr context, string appKey, IntPtr bindingsMultiSz, int numberOfBindings)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationBindingsChanged)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}, {nameof(bindingsMultiSz)}={bindingsMultiSz}, {nameof(numberOfBindings)}={numberOfBindings}]");
+            TraceInformation($"{nameof(OnApplicationBindingsChanged)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}, {nameof(bindingsMultiSz)}={bindingsMultiSz}, {nameof(numberOfBindings)}={numberOfBindings}]", GetType());
             var bindings = ParseBindings(bindingsMultiSz, numberOfBindings);
             ApplicationBindingsChanged?.Invoke(this, new ApplicationBindingsChangedEventArgs(appKey, bindings));
         }
 
         private void OnApplicationAppPoolChanged(IntPtr context, string appKey, string appPoolId)
         {
-            Trace.TraceInformation($"{nameof(OnApplicationAppPoolChanged)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}, {nameof(appPoolId)}={appPoolId}]");
+            TraceInformation($"{nameof(OnApplicationAppPoolChanged)} [{nameof(context)}={context}, {nameof(appKey)}={appKey}, {nameof(appPoolId)}={appPoolId}]", GetType());
             ApplicationAppPoolChanged?.Invoke(this, new ApplicationAppPoolChangedEventArgs(appKey, appPoolId));
         }
 

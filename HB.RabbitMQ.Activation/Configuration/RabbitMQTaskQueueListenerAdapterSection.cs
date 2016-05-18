@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
 using System.Configuration;
 
 namespace HB.RabbitMQ.Activation.Configuration
@@ -28,12 +29,19 @@ namespace HB.RabbitMQ.Activation.Configuration
         public RabbitMQTaskQueueListenerAdapterSection()
         {
         }
-        
-        [ConfigurationProperty(RabbitMQTaskQueueListenerAdapterSectionAttributes.Connection)]
-        public ConnectionElement Connection
+
+        [ConfigurationProperty(RabbitMQTaskQueueListenerAdapterSectionAttributes.ManagementUri, IsRequired = true)]
+        public Uri ManagementUri
         {
-            get { return (ConnectionElement)this[RabbitMQTaskQueueListenerAdapterSectionAttributes.Connection]; }
-            set { this[RabbitMQTaskQueueListenerAdapterSectionAttributes.Connection] = value; }
+            get { return (Uri)this[RabbitMQTaskQueueListenerAdapterSectionAttributes.ManagementUri]; }
+            set { this[RabbitMQTaskQueueListenerAdapterSectionAttributes.ManagementUri] = value; }
+        }
+
+        [ConfigurationProperty(RabbitMQTaskQueueListenerAdapterSectionAttributes.PollInterval, DefaultValue = "0:1")]
+        public TimeSpan PollInterval
+        {
+            get { return (TimeSpan)this[RabbitMQTaskQueueListenerAdapterSectionAttributes.PollInterval]; }
+            set { this[RabbitMQTaskQueueListenerAdapterSectionAttributes.PollInterval] = value; }
         }
     }
 }

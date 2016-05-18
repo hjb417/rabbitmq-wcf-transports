@@ -20,33 +20,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.ServiceModel;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
 {
-    internal static class DictionaryExtensionMethods
+    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false)]
+    internal sealed class WasInteropServiceCallback : IWasInteropServiceCallback
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        private readonly int _listenerchannelId;
+
+        public WasInteropServiceCallback(int listenerchannelId)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+            _listenerchannelId = listenerchannelId;
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-            where TValue : new()
+        public IWasInteropService Service { get; set; }
+
+        public void EnsureServiceAvailable(string virtualPath)
         {
-            return dictionary.GetOrAdd(key, k => new TValue());
+            Trace.TraceInformation($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: Activating service [{virtualPath}] for listener channel id [{_listenerchannelId}].");
+            ServiceHostingEnvironment.EnsureServiceAvailable(virtualPath);
+            Trace.TraceInformation($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: Activated service [{virtualPath}] for listener channel id [{_listenerchannelId}].");
+            Service.ServiceActivated(_listenerchannelId, virtualPath);
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        public void KeepAlive()
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
-            {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
-            }
-            return value;
         }
     }
 }

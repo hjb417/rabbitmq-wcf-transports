@@ -20,33 +20,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
-namespace HB
+namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 {
-    internal static class DictionaryExtensionMethods
+    [Serializable]
+    public sealed class ListenerChannelSetup
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public ListenerChannelSetup(string applicationId, string applicationPath, Uri messagePublicationNotificationServiceUri)
         {
-            TValue value;
-            return dictionary.TryGetValue(key, out value) ? value : default(TValue);
+            ApplicationId = applicationId;
+            ApplicationPath = applicationPath;
+            MessagePublicationNotificationServiceUri = messagePublicationNotificationServiceUri;
         }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-            where TValue : new()
-        {
-            return dictionary.GetOrAdd(key, k => new TValue());
-        }
+        public string ApplicationId { get; }
+        public string ApplicationPath { get; }
+        public Uri MessagePublicationNotificationServiceUri { get; }
 
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> valueFactory)
+        public static ListenerChannelSetup FromBytes(byte[] buffer)
         {
-            TValue value;
-            if(!dictionary.TryGetValue(key, out value))
+            var formatter = new BinaryFormatter();
+            using (var input = new MemoryStream(buffer, false))
             {
-                value = valueFactory(key);
-                dictionary.Add(key, value);
+                return (ListenerChannelSetup)formatter.Deserialize(input);
             }
-            return value;
+        }
+
+        public byte[] ToBytes()
+        {
+            var formatter = new BinaryFormatter();
+            using (var buffer = new MemoryStream())
+            {
+                formatter.Serialize(buffer, this);
+                return buffer.ToArray();
+            }
         }
     }
 }

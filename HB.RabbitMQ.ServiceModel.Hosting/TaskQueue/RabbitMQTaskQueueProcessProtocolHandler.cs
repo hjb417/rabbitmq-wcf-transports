@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.Web.Hosting;
 
 namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
@@ -28,8 +28,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
     public sealed class RabbitMQTaskQueueProcessProtocolHandler : ProcessProtocolHandler
     {
         private IAdphManager _adphManager;
-        private const string _scheme = "hb.rmqtq";
-        private readonly Dictionary<int, string> _appInstanceTable = new Dictionary<int, string>();
+        private readonly Dictionary<int, ListenerChannelSetup> _appInstanceTable = new Dictionary<int, ListenerChannelSetup>();
 
         public RabbitMQTaskQueueProcessProtocolHandler()
         {
@@ -39,31 +38,37 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
         {
             _adphManager = adphManager;
             var channelId = listenerChannelCallback.GetId();
-            var length = listenerChannelCallback.GetBlobLength();
-            var blob = new byte[length];
-            listenerChannelCallback.GetBlob(blob, ref length);
-            var appId = Encoding.Unicode.GetString(blob);
+
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueProcessProtocolHandler)}.{nameof(StartListenerChannel)}: Starting listener channel for channel id [{channelId}].");
+
+            var setup = listenerChannelCallback.GetBlobAsListenerChannelSetup();
             lock (_appInstanceTable)
             {
-                _appInstanceTable[channelId] = appId;
+                if (!_appInstanceTable.ContainsKey(channelId))
+                {
+                    _appInstanceTable.Add(channelId, setup);
+                }
             }
-            adphManager.StartAppDomainProtocolListenerChannel(appId, _scheme, listenerChannelCallback);
+            adphManager.StartAppDomainProtocolListenerChannel(setup.ApplicationId, Constants.Scheme, listenerChannelCallback);
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueProcessProtocolHandler)}.{nameof(StartListenerChannel)}: Started listener channel for channel id [{channelId}].");
         }
 
         public override void StopListenerChannel(int listenerChannelId, bool immediate)
         {
-            string appId;
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueProcessProtocolHandler)}.{nameof(StopListenerChannel)}: Stopping listener channel for channel id [{listenerChannelId}].");
+            ListenerChannelSetup channelSetup;
             lock(_appInstanceTable)
             {
-                if (_appInstanceTable.TryGetValue(listenerChannelId, out appId))
+                if (_appInstanceTable.TryGetValue(listenerChannelId, out channelSetup))
                 {
-                    _adphManager.StopAppDomainProtocolListenerChannel(appId, _scheme, listenerChannelId, immediate);
+                    _adphManager.StopAppDomainProtocolListenerChannel(channelSetup.ApplicationId, Constants.Scheme, listenerChannelId, immediate);
                 }
             }
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueProcessProtocolHandler)}.{nameof(StopListenerChannel)}: Stopped listener channel for channel id [{listenerChannelId}].");
         }
 
         public override void StopProtocol(bool immediate)
-        { 
+        {
         }
     }
 }

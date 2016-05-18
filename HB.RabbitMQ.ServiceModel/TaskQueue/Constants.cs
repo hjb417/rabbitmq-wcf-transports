@@ -23,7 +23,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {
     internal static class Constants
     {
-        public const string Scheme = "hb.rmqtq";
+        public const string Scheme = Hosting.TaskQueue.Constants.Scheme;
         public const string DefaultExchange = "amq.direct";
     }
 }

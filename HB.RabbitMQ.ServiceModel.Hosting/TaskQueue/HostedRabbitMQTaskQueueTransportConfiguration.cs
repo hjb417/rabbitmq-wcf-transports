@@ -20,7 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Diagnostics;
 using System.ServiceModel.Activation;
+using System.Web;
+using System.Web.Hosting;
 
 namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 {
@@ -32,9 +35,10 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 
         public override Uri[] GetBaseAddresses(string virtualPath)
         {
-            //The base address host names are actually the RabbitMQ server names which the IIS
-            //site does not know about, so we instead return an empty array.
-            return new Uri[0];
+            Debug.WriteLine($"{nameof(HostedRabbitMQTaskQueueTransportConfiguration)}.{nameof(GetBaseAddresses)}({virtualPath})");
+            string text = VirtualPathUtility.ToAbsolute(virtualPath, HostingEnvironment.ApplicationVirtualPath);
+            var uri = new UriBuilder(Constants.Scheme, Constants.DefaultHost, -1, text).Uri;
+            return new[] { uri };
         }
     }
 }

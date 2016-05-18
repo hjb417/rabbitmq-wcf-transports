@@ -21,15 +21,19 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
+using HB.RabbitMQ.ServiceModel.Hosting.ServiceModel;
+using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop;
 using HB.RabbitMQ.ServiceModel.Threading.Tasks.Schedulers;
 using Microsoft.Web.Administration;
-using RabbitMQ.Client;
 using ListenerAdapter = HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter.ListenerAdapter;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
@@ -39,16 +43,23 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         private const string ProtocolsPath = "system.web/protocols";
 
         private readonly Dictionary<string, ApplicationInfo> _apps = new Dictionary<string, ApplicationInfo>();
-        private readonly Dictionary<string, RabbitMQMessageListener> _rmqListeners = new Dictionary<string, RabbitMQMessageListener>();
         private readonly Dictionary<string, ApplicationPoolInfo> _appPools = new Dictionary<string, ApplicationPoolInfo>();
         private readonly ListenerAdapter _listenerAdapter;
-        private readonly IConnection _connection;
+        private readonly RabbitMQQueueMonitor _queueMon;
         private readonly LimitedConcurrencyLevelTaskScheduler _taskScheduler = new LimitedConcurrencyLevelTaskScheduler(1);
         private volatile bool _isDisposed;
+        private Uri _messagePublicationNotificationServiceUri = new Uri($"net.pipe://localhost/RabbitMQTaskQueueListenerAdapter_{Guid.NewGuid():N}");
+        private readonly ServiceHost _msgPubNotificationSvcHost;
 
-        public RabbitMQTaskQueueListenerAdapter(IConnectionFactory connection)
+        public RabbitMQTaskQueueListenerAdapter(Uri rabbitMqManagementUri, TimeSpan pollInterval)
         {
-            _connection = connection.CreateConnection();
+            _queueMon = new RabbitMQQueueMonitor(rabbitMqManagementUri, pollInterval);
+            _queueMon.MessagePublished += QueueMonitor_MessagePublished;
+
+            _msgPubNotificationSvcHost = new ServiceHost(new MessagePublicationNotificationService(_queueMon), _messagePublicationNotificationServiceUri);
+            _msgPubNotificationSvcHost.AddServiceEndpoint(typeof(IWasInteropService), NetNamedPipeBindingFactory.Create(), string.Empty);
+            _msgPubNotificationSvcHost.Open();
+
             _listenerAdapter = new ListenerAdapter(Constants.Scheme);
             _listenerAdapter.ApplicationCreated += ListenerAdapter_ApplicationCreated;
             _listenerAdapter.ApplicationDeleted += ListenerAdapter_ApplicationDeleted;
@@ -69,19 +80,47 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
             Dispose(false);
         }
 
+        private void QueueMonitor_MessagePublished(object sender, MessagePublishedEventArgs e)
+        {
+            EnqueueApplicationAction(apps =>
+            {
+                var appsToOpen = apps.Values
+                    .Where(a => a.ListenerChannelId.IsValueCreated)
+                    .Where(a => a.ApplicationPath.Equals(e.ApplicationPath, StringComparison.OrdinalIgnoreCase));
+                foreach (var app in appsToOpen)
+                {
+                    OpenNewListenerChannelInstance(app);
+                }
+            });
+        }
+
         private void ListenerAdapter_ApplicationPoolDeleted(object sender, ApplicationPoolDeletedEventArgs e)
         {
-            EnqueueApplcationPoolAction(appPools => appPools.Remove(e.ApplicationPoolId));
+            EnqueueApplcationPoolAction(appPools =>
+            {
+                TraceInformation($"Deleting application pool [{e.ApplicationPoolId}].", GetType());
+                appPools.Remove(e.ApplicationPoolId);
+            });
         }
 
         private void ListenerAdapter_ApplicationPoolCreated(object sender, ApplicationPoolCreatedEventArgs e)
         {
-            EnqueueApplcationPoolAction(appPools => appPools[e.ApplicationPoolName] = new ApplicationPoolInfo(e.ApplicationPoolName));
+            EnqueueApplcationPoolAction(appPools =>
+            {
+                TraceInformation($"Adding the application pool [{e.ApplicationPoolName}].", GetType());
+                appPools[e.ApplicationPoolName] = new ApplicationPoolInfo(e.ApplicationPoolName);
+            });
         }
 
         private void ListenerAdapter_ApplicationAppPoolChanged(object sender, ApplicationAppPoolChangedEventArgs e)
         {
-            EnqueueApplicationAction(apps => apps[e.ApplicationName].UpdateApplicationPool(e.ApplicationPoolName, _appPools[e.ApplicationPoolName].State));
+            EnqueueApplicationAction(apps =>
+            {
+                var app = apps[e.ApplicationName];
+                var appPoolState = _appPools[e.ApplicationPoolName].State;
+                TraceInformation($"Changing the application pool to [{e.ApplicationPoolName}:{appPoolState}] for the application [{app.ApplicationKey}:{app.ApplicationPath}].", GetType());
+                app.UpdateApplicationPool(e.ApplicationPoolName, appPoolState);
+            });
         }
 
         private void ListenerAdapter_ApplicationPoolStateChanged(object sender, ApplicationPoolStateChangedEventArgs e)
@@ -89,10 +128,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
             EnqueueApplcationPoolAction(appPools => appPools[e.ApplicationPoolId].State = e.State);
             EnqueueApplicationAction(apps =>
             {
-                foreach(var app in apps.Values)
+                foreach (var app in apps.Values)
                 {
-                    if(app.ApplicationPoolName == e.ApplicationPoolId)
+                    if (app.ApplicationPoolName == e.ApplicationPoolId)
                     {
+                        TraceInformation($"Changing {nameof(app.ApplicationPoolState)} to [{e.State}] for the application [{app.ApplicationKey}:{app.ApplicationPath}].", GetType());
                         app.UpdateApplicationPool(e.ApplicationPoolId, e.State);
                     }
                 }
@@ -101,7 +141,12 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
         private void ListenerAdapter_ApplicationRequestBlockedStateChanged(object sender, ApplicationRequestBlockedStateChangedEventArgs e)
         {
-            EnqueueApplicationAction(apps => apps[e.ApplicationName].RequestsBlockedState = e.State);
+            EnqueueApplicationAction(apps =>
+            {
+                var app = apps[e.ApplicationName];
+                TraceInformation($"Changing {nameof(app.RequestsBlockedState)} to [{e.State}] for the application [{app.ApplicationKey}:{app.ApplicationPath}].", GetType());
+                app.RequestsBlockedState = e.State;
+            });
         }
 
         private void ListenerAdapter_ApplicationPoolListenerChannelInstancesStopped(object sender, ApplicationPoolListenerChannelInstanceEventArgs e)
@@ -114,6 +159,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 .FirstOrDefault();
                 if (app != null)
                 {
+                    TraceInformation($"Stopping application [{app.ApplicationKey}:{app.ApplicationPath}].", GetType());
                     app.RequestsBlockedState = ApplicationRequestsBlockedStates.Blocked;
                 }
             });
@@ -126,6 +172,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 var app = apps.Values.Where(a => a.ApplicationKey == e.ApplicationKey).FirstOrDefault();
                 if (app != null)
                 {
+                    TraceInformation($"Removing application [{app.ApplicationKey}:{app.ApplicationPath}].", GetType());
                     app.CanOpenNewListenerChannelInstance = false;
                     apps.Remove(app.ApplicationPath);
                 }
@@ -151,25 +198,33 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         {
             EnqueueApplicationAction(apps =>
             {
-                var app = new ApplicationInfo(e.ApplicationKey, e.Url, e.SiteId, e.ApplicationPoolName, _appPools[e.ApplicationPoolName].State, e.RequestsBlockedState);
-                new RabbitMQMessageListener(app, _connection).MessageQueuedEvent += delegate { OpenNewListenerChannelInstance(app); };
-                apps.Add(e.Url, app);
+                var app = new ApplicationInfo(e.ApplicationKey, e.ApplicationVirtualPath, e.SiteId, e.ApplicationPoolName, _appPools[e.ApplicationPoolName].State, e.RequestsBlockedState, _messagePublicationNotificationServiceUri);
+                apps.Add(e.ApplicationVirtualPath, app);
+                TraceInformation($"Created application [{app.ApplicationKey}:{app.ApplicationPath}].", GetType());
+                if (_queueMon.ApplicationHasPendingMessages(app.ApplicationPath))
+                {
+                    OpenNewListenerChannelInstance(app);
+                }
             });
         }
 
         private void OpenNewListenerChannelInstance(ApplicationInfo app)
         {
-            EnqueueAction(() =>
+            if (app.ListenerChannelId.IsValueCreated)
             {
-                if (app.CanOpenNewListenerChannelInstance)
-                {
-                    app.CanOpenNewListenerChannelInstance = false;
-                    if (!_isDisposed)
-                    {
-                        _listenerAdapter.OpenListenerChannelInstance(app.ApplicationPoolName, app.ListenerChannelId.Value, app.QueueBlob);
-                    }
-                }
-            });
+                return;
+            }
+            if (!app.CanOpenNewListenerChannelInstance)
+            {
+                return;
+            }
+            if(_isDisposed)
+            {
+                return;
+            }
+            app.CanOpenNewListenerChannelInstance = false;
+            TraceInformation($"Opening listener channel for application [{app.ApplicationPoolName}:{app.ApplicationPath}] with listener channel id [{app.ListenerChannelId.Value}].", GetType());
+            _listenerAdapter.OpenListenerChannelInstance(app.ApplicationPoolName, app.ListenerChannelId.Value, app.ListenerChannelSetup.ToBytes());
         }
 
         private void EnqueueAction(Action action)
@@ -181,7 +236,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         {
             EnqueueAction(() => callback(_apps));
         }
-        
+
         private void EnqueueApplcationPoolAction(Action<IDictionary<string, ApplicationPoolInfo>> callback)
         {
             EnqueueAction(() => callback(_appPools));
@@ -194,14 +249,15 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 var wasConfiguration = sm.GetApplicationHostConfiguration();
                 var section = wasConfiguration.GetSection(ListenerAdapterPath);
                 var listenerAdaptersCollection = section.GetCollection();
-                if (!listenerAdaptersCollection.Any(e => Constants.Scheme.Equals(e.GetAttributeValue("name"))))
+                if (listenerAdaptersCollection.Any(e => Constants.Scheme.Equals(e.GetAttributeValue("name"))))
                 {
-                    var element = listenerAdaptersCollection.CreateElement();
-                    element.GetAttribute("name").Value = Constants.Scheme;
-                    element.GetAttribute("identity").Value = WindowsIdentity.GetCurrent().User.Value;
-                    listenerAdaptersCollection.Add(element);
-                    sm.CommitChanges();
+                    return;
                 }
+                var element = listenerAdaptersCollection.CreateElement();
+                element.GetAttribute("name").Value = Constants.Scheme;
+                element.GetAttribute("identity").Value = WindowsIdentity.GetCurrent().User.Value;
+                listenerAdaptersCollection.Add(element);
+                sm.CommitChanges();
             }
         }
 
@@ -212,12 +268,22 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 _isDisposed = true;
                 EnqueueApplicationAction(apps =>
                 {
+                    _queueMon.Dispose();
                     _listenerAdapter.Dispose();
                     foreach (var app in apps.Values)
                     {
                         app.CanOpenNewListenerChannelInstance = false;
                     }
-                    _connection.Dispose();
+                    try
+                    {
+                        _msgPubNotificationSvcHost.Close();
+                    }
+                    catch
+                    {
+                        _msgPubNotificationSvcHost.Abort();
+                    }
+                    var msgPubNotificationSvc = (MessagePublicationNotificationService)_msgPubNotificationSvcHost.SingletonInstance;
+                    msgPubNotificationSvc.Dispose();
                 });
             }
         }

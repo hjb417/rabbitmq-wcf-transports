@@ -24,6 +24,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
 {
@@ -85,7 +86,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             }
             catch (Exception e)
             {
-                Trace.TraceWarning("[{2}] Failed add a new input channel to listener on [{0}]. {1}", Uri, e, GetType());
+                TraceWarning($"Failed add a new input channel to listener on [{Uri}]. {e}", GetType());
             }
         }
 
