@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.ServiceModel;
 using System.ServiceModel.Channels;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue
@@ -30,10 +31,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private readonly Action<TimeSpan> _onOpenFunc;
         private readonly MessageEncoderFactory _msgEncoderFactory;
 
-        protected RabbitMQTaskQueueChannelBase(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding)
+        protected RabbitMQTaskQueueChannelBase(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress)
             : base(channelManager, binding.CommunicationObjectCreatedCallback)
         {
             MethodInvocationTrace.Write();
+            LocalAddress = localAddress;
             Binding = binding;
             BindingContext = context;
             _onCloseFunc = OnClose;
@@ -46,6 +48,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         protected ConcurrentOperationManager ConcurrentOperationManager { get; private set; }
         internal protected IRabbitMQWriter QueueWriter { get; protected set; }
         protected MessageEncoderFactory MessageEncoderFactory { get { return _msgEncoderFactory; } }
+        public EndpointAddress LocalAddress { get; }
         
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
@@ -75,7 +78,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
             MethodInvocationTrace.Write();
             ConcurrentOperationManager = new ConcurrentOperationManager(GetType().FullName);
-            QueueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeout, ConcurrentOperationManager.Token, Binding.WriterOptions);
+            var connFactory = Binding.CreateConnectionFactory(LocalAddress.Uri.Host, LocalAddress.Uri.Port);
+            QueueWriter = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeout, ConcurrentOperationManager.Token, Binding.WriterOptions);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)

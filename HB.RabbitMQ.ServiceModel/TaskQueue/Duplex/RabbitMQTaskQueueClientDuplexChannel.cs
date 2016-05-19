@@ -32,23 +32,20 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
     internal sealed class RabbitMQTaskQueueClientDuplexChannel<TChannel> : RabbitMQTaskQueueDuplexChannelBase
         where TChannel : IChannel
     {
-        private readonly EndpointAddress _localAddress;
         private readonly RabbitMQTaskQueueUri _remoteAddress;
         private IRabbitMQReader _queueReader;
         private readonly BufferManager _bufferMgr;
         private RabbitMQTaskQueueUri _remoteSessionUri;
 
         public RabbitMQTaskQueueClientDuplexChannel(BindingContext context, RabbitMQTaskQueueDuplexChannelFactory<TChannel> channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, EndpointAddress remoteAddress, BufferManager bufferManager)
-            : base(context, channelManager, binding, remoteAddress)
+            : base(context, channelManager, binding, remoteAddress, localAddress)
         {
             MethodInvocationTrace.Write();
             _bufferMgr = bufferManager;
             _remoteAddress = new RabbitMQTaskQueueUri(remoteAddress.Uri.ToString());
-            _localAddress = localAddress;
         }
 
         private new RabbitMQTaskQueueDuplexChannelFactory<TChannel> Manager { get { return (RabbitMQTaskQueueDuplexChannelFactory<TChannel>)base.Manager; } }
-        public override EndpointAddress LocalAddress { get { return _localAddress; } }
         protected override IRabbitMQReader QueueReader { get { return _queueReader; } }
 
         protected override void OnOpen(TimeSpan timeout)
@@ -57,7 +54,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var timer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timer.RemainingTime);
 
-            var localUri = new RabbitMQTaskQueueUri(_localAddress.Uri.ToString());
+            var localUri = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
             using (ConcurrentOperationManager.TrackOperation())
             using (var createSessionReqMsg = Message.CreateMessage(MessageVersion.Default, Actions.CreateSessionRequest, new CreateSessionRequest()))
             {
@@ -66,10 +63,12 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                 createSessionReqMsg.Headers.To = RemoteAddress.Uri;
                 createSessionReqMsg.Headers.MessageId = new UniqueId();
 
+                var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
+
                 try
                 {
-                    _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, localUri.Exchange, localUri.QueueName, localUri.IsDurable, localUri.DeleteOnClose, localUri.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
-                    QueueWriter.Enqueue(_remoteAddress.Exchange, _remoteAddress.QueueName, createSessionReqMsg, _bufferMgr, Binding, MessageEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
+                    _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localUri.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+                    QueueWriter.Enqueue(Binding.Exchange, _remoteAddress.QueueName, createSessionReqMsg, _bufferMgr, Binding, MessageEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                     using (var msg = _queueReader.Dequeue(Binding, MessageEncoderFactory, timer.RemainingTime, ConcurrentOperationManager.Token))
                     {
                         var response = msg.GetBody<CreateSessionResponse>();
@@ -99,7 +98,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 
                     CloseOutputSession(closeSessionTimeout);
                 }
-                catch (Exception e) when(e is TimeoutException || e is ObjectDisposedException || e is OperationCanceledException)
+                catch (Exception e) when (e is TimeoutException || e is ObjectDisposedException || e is OperationCanceledException)
                 {
                     if (closeReason != CloseReasons.Abort)
                     {
@@ -131,7 +130,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                 }
                 message.Headers.To = _remoteSessionUri;
                 message.Headers.From = LocalAddress;
-                QueueWriter.Enqueue(_remoteSessionUri.Exchange, _remoteSessionUri.QueueName, message, Manager.BufferManager, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
+                QueueWriter.Enqueue(Binding.Exchange, _remoteSessionUri.QueueName, message, Manager.BufferManager, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
             }
         }
 
@@ -140,7 +139,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var msg = base.Receive(timeout);
 
             //if the server closed the session.
-            if((msg == null) && InputSessionClosingRequestReceived)
+            if ((msg == null) && InputSessionClosingRequestReceived)
             {
                 OnFaulted();
                 throw new CommunicationException("The remote channel closed the session.");

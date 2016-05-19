@@ -29,24 +29,21 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
     internal sealed class RabbitMQTaskQueueServerDuplexChannel : RabbitMQTaskQueueDuplexChannelBase
     {
-        private readonly EndpointAddress _localAddress;
         private readonly EndpointAddress _remoteAddress;
         private readonly IRabbitMQReader _queueReader;
         private readonly RabbitMQTaskQueueUri _remoteUri;
         private readonly BufferManager _bufferMgr;
 
         public RabbitMQTaskQueueServerDuplexChannel(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, EndpointAddress remoteAddress, BufferManager bufferManager, IRabbitMQReader queueReader)
-            : base(context, channelManager, binding, remoteAddress)
+            : base(context, channelManager, binding, remoteAddress, localAddress)
         {
             MethodInvocationTrace.Write();
             _bufferMgr = bufferManager;
             _remoteAddress = remoteAddress;
             _remoteUri = new RabbitMQTaskQueueUri(remoteAddress.Uri.ToString());
-            _localAddress = localAddress;
             _queueReader = queueReader;
         }
-
-        public override EndpointAddress LocalAddress { get { return _localAddress; } }
+        
         protected override IRabbitMQReader QueueReader { get { return _queueReader; } }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
@@ -91,7 +88,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             MethodInvocationTrace.Write();
             using (ConcurrentOperationManager.TrackOperation())
             {
-                QueueWriter.Enqueue(_remoteUri.Exchange, _remoteUri.QueueName, message, _bufferMgr, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeout, ConcurrentOperationManager.Token);
+                QueueWriter.Enqueue(Binding.Exchange, _remoteUri.QueueName, message, _bufferMgr, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeout, ConcurrentOperationManager.Token);
             }
         }
     }

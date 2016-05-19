@@ -132,7 +132,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                 message.Headers.From = _replyToAddress;
                 message.Headers.ReplyTo = _replyToAddress;
                 message.Headers.MessageId = new UniqueId();
-                _queueWriter.Enqueue(remoteAddress.Exchange, remoteAddress.QueueName, message, _bufferMgr, _binding, _msgEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, _opMgr.Token);
+                _queueWriter.Enqueue(_binding.Exchange, remoteAddress.QueueName, message, _bufferMgr, _binding, _msgEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, _opMgr.Token);
                 _replySent = true;
             }
         }

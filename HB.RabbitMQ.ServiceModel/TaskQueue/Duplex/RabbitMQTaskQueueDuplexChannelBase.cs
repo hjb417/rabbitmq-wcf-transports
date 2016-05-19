@@ -37,8 +37,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         private readonly Action<TimeSpan> _closeOutputSessionFunc;
         private volatile bool _closeSessionRequestReceived;
 
-        protected RabbitMQTaskQueueDuplexChannelBase(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress remoteAddress)
-            : base(context, channelManager, binding)
+        protected RabbitMQTaskQueueDuplexChannelBase(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress remoteAddress, EndpointAddress localAddress)
+            : base(context, channelManager, binding, localAddress)
         {
             MethodInvocationTrace.Write();
             _tryReceiveMethod = TryReceive;
@@ -54,7 +54,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         public IDuplexSession Session { get { return this; } }
         public string Id { get { return LocalAddress.Uri.ToString(); } }
         public virtual Uri Via { get { return null; } }
-        public abstract EndpointAddress LocalAddress { get; }
         protected abstract IRabbitMQReader QueueReader { get; }
         public EndpointAddress RemoteAddress { get { return _remoteAddress; } }
         protected bool InputSessionClosingRequestReceived { get; private set; }
@@ -80,10 +79,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             CloseSessionRequestReceived = false;
             InputSessionClosingRequestReceived = false;
             base.OnOpen(timeoutTimer.RemainingTime);
-            if ((_remoteUri != null) && Binding.AutoCreateServerQueue)
+            if ((RemoteAddress != null) && Binding.AutoCreateServerQueue)
             {
+                var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
                 //create the queue if it doesn't already exist.
-                Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _remoteUri.Exchange, _remoteUri.QueueName, true, false, _remoteUri.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, _remoteUri.MaxPriority).Dispose();
+                Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, _remoteUri.QueueName, true, false, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority).Dispose();
             }
         }
 

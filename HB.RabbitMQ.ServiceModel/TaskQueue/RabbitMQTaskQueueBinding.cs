@@ -34,6 +34,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private TimeSpan? _ttl = TimeSpan.FromMinutes(20);
         private IRabbitMQReaderWriterFactory _queueRwFactory = RabbitMQReaderWriterFactory.Instance;
         private MessageConfirmationModes _confMode = MessageConfirmationModes.BeforeReply;
+        private string _exchange = Constants.DefaultExchange;
 
         public RabbitMQTaskQueueBinding()
         {
@@ -48,7 +49,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 
         public long MaxBufferPoolSize { get { return _transport.MaxBufferPoolSize; } set { _transport.MaxBufferPoolSize = value; } }
         public long MaxReceivedMessageSize { get { return _transport.MaxReceivedMessageSize; } set { _transport.MaxReceivedMessageSize = value; } }
-        public IConnectionFactory ConnectionFactory { get; set; }
         internal Action<ICommunicationObject> CommunicationObjectCreatedCallback { get; set; }
 
         internal IRabbitMQReaderWriterFactory QueueReaderWriterFactory
@@ -60,13 +60,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public RabbitMQReaderOptions ReaderOptions
         {
             get { return _rdrOptions; }
-            set { _rdrOptions = value.Clone() ?? new RabbitMQReaderOptions(); }
+            set { _rdrOptions = (value == null) ? new RabbitMQReaderOptions() : value.Clone(); }
         }
 
         public RabbitMQWriterOptions WriterOptions
         {
             get { return _writerOptions; }
-            set { _writerOptions = value.Clone() ?? new RabbitMQWriterOptions(); }
+            set { _writerOptions = (value == null) ? new RabbitMQWriterOptions() : value.Clone(); }
         }
 
         public TimeSpan? QueueTimeToLive
@@ -85,6 +85,25 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 
         public override string Scheme { get { return _transport.Scheme; } }
 
+        public string Exchange
+        {
+            get { return _exchange; }
+            set { _exchange = value ?? Constants.DefaultExchange; }
+
+        }
+
+        public bool IsDurable { get; set; }
+        public bool DeleteOnClose { get; set; }
+        public TimeSpan? TimeToLive { get; set; }
+        public int? MaxPriority { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string VirtualHost { get; set; }
+        public string Protocol { get; set; }
+        public bool AutomaticRecoveryEnabled { get; set; }
+        public TimeSpan RequestedHeartbeat { get; set; }
+        public bool UseBackgroundThreadsForIO { get; set; }
+
         internal BufferManager CreateBufferManager()
         {
             return BufferManager.CreateBufferManager(MaxBufferPoolSize, (int)MaxReceivedMessageSize);
@@ -93,6 +112,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private void Initialize()
         {
             _transport = new RabbitMQTransportBindingElement(this);
+            IsDurable = true;
+            Protocol = AmqpProtocols.Default;
         }
 
         public override BindingElementCollection CreateBindingElements()
@@ -101,6 +122,35 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             bindings.Add(new TransactionFlowBindingElement { AllowWildcardAction = true, TransactionProtocol = TransactionProtocol.OleTransactions });
             bindings.Add(new RabbitMQTransportBindingElement(this));
             return bindings;
+        }
+
+        public ConnectionFactory CreateConnectionFactory(string hostName, int port)
+        {
+            return new ConnectionFactory
+            {
+                Protocol = GetRabbitMQProtocol(),
+                HostName = hostName,
+                Port = port,
+                UserName = Username,
+                Password = Password,
+                VirtualHost = VirtualHost,
+                AutomaticRecoveryEnabled = AutomaticRecoveryEnabled,
+                RequestedHeartbeat = (ushort) RequestedHeartbeat.TotalSeconds,
+                UseBackgroundThreadsForIO = UseBackgroundThreadsForIO,
+            };
+        }
+
+        private IProtocol GetRabbitMQProtocol()
+        {
+            if (AmqpProtocols.Default.Equals(Protocol, StringComparison.OrdinalIgnoreCase))
+            {
+                return Protocols.DefaultProtocol;
+            }
+            if (AmqpProtocols.v0_9_1.Equals(Protocol, StringComparison.OrdinalIgnoreCase))
+            {
+                return Protocols.AMQP_0_9_1;
+            }
+            throw new NotSupportedException();
         }
     }
 }

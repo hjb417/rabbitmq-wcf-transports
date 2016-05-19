@@ -166,7 +166,6 @@
     <Compile Include="TaskQueue\NoOpDequeueThrottlerFactory.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueBindingElement+DefaultValues.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueChannelBase.cs" />
-    <Compile Include="TaskQueue\RabbitMQTaskQueueUri+QueryKeys.cs" />
     <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueReplyChannelListener.cs" />
     <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueRequestChannel.cs" />
     <Compile Include="TaskQueue\RequestReply\RabbitMQTaskQueueReplyChannel.cs" />

@@ -25,12 +25,12 @@ The bindings can be created either in configuration or in code. Below is a sampl
     </extensions>
     <bindings>
       <rabbitMQTaskQueue>
-        <binding hostName="localhost"/>
+        <binding/>
       </rabbitMQTaskQueue>
     </bindings>
     <services>
       <service name="ConsoleServer.SimpleService">
-        <endpoint address="hb.rmqtq://Contracts.ISimpleService/" binding="rabbitMQTaskQueue" contract="Contracts.ISimpleService"/>
+        <endpoint address="hb.rmqtq://localhost:5672/Contracts.ISimpleService/" binding="rabbitMQTaskQueue" contract="Contracts.ISimpleService"/>
       </service>
     </services>
 </system.serviceModel></configurarion>
@@ -47,11 +47,11 @@ The bindings can be created either in configuration or in code. Below is a sampl
     </extensions>
     <bindings>
       <rabbitMQTaskQueue>
-        <binding hostName="localhost"/>
+        <binding/>
       </rabbitMQTaskQueue>
     </bindings>
     <client>
-      <endpoint name="SimpleService" address="hb.rmqtq://Contracts.ISimpleService/" binding="rabbitMQTaskQueue" contract="Contracts.ISimpleService" />
+      <endpoint name="SimpleService" address="hb.rmqtq://localhost:5672/Contracts.ISimpleService/" binding="rabbitMQTaskQueue" contract="Contracts.ISimpleService" />
     </client>
   </system.serviceModel>
 </configuration>

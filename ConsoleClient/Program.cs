@@ -35,7 +35,7 @@ namespace ConsoleClient
                     Task.Factory.StartNew(() => Console.WriteLine(client.Echo(txt)));
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return;
             }
@@ -53,13 +53,7 @@ namespace ConsoleClient
 
         static ChannelFactory<ISimpleService> CreateClientFromCode(ISimpleServiceCallback callback)
         {
-            return new ChannelFactory<ISimpleService>(new RabbitMQTaskQueueBinding
-            {
-                ConnectionFactory = new ConnectionFactory
-                {
-                    HostName = "localhost",
-                }
-            }, new EndpointAddress(RabbitMQTaskQueueUri.Create("Contracts.ISimpleService")));
+            return new ChannelFactory<ISimpleService>(new RabbitMQTaskQueueBinding(), new EndpointAddress(RabbitMQTaskQueueUri.Create("localhost", 5672, "Contracts.ISimpleService")));
         }
     }
 

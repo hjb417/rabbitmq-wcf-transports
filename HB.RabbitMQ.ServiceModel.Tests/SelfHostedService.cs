@@ -27,7 +27,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
                     uri = string.Format("net.msmq://localhost/private/{0}", QueueName);
                     break;
                 case BindingTypes.RabbitMQTaskQueue:
-                    uri = RabbitMQTaskQueueUri.Create(QueueName, ttl: TimeSpan.FromMinutes(10)).ToString();
+                    uri = RabbitMQTaskQueueUri.Create("localhost", 5672, QueueName).ToString();
                     break;
                 case BindingTypes.NetTcp:
                     listenMode = ListenUriMode.Unique;

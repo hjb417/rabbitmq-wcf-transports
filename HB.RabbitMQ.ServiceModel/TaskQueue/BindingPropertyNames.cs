@@ -37,5 +37,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public const string IncludeProcessCommandLineInMessageHeaders = "includeProcessCommandLineInMessageHeaders";
         public const string AutoCreateServerQueue = "autoCreateServerQueue";
         public const string MessageConfirmationMode = "messageConfirmationMode";
+        public const string Exchange = "exchange";
+        public const string IsDurable = "isDurable";
+        public const string DeleteOnClose = "deleteOnClose";
+        public const string TimeToLive = "timeToLive";
+        public const string MaxPriority = "maxPriority";
+        public const string AutomaticRecoveryEnabled = "automaticRecoveryEnabled";
+        public const string RequestedHeartbeat = "requestedHeartbeat";
+        public const string UseBackgroundThreadsForIO = "useBackgroundThreadsForIO";
     }
 }

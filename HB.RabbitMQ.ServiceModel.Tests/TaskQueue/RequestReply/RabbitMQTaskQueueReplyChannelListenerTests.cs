@@ -18,17 +18,17 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply
         {
             var binding = BindingFactory.Create(BindingTypes.RabbitMQTaskQueue, null, null);
             _svcHost = new ServiceHost(typeof(VanillaService));
-            _svcHost.AddServiceEndpoint(typeof(IVanillaService), binding, RabbitMQTaskQueueUri.Create(Guid.NewGuid().ToString()));
+            _svcHost.AddServiceEndpoint(typeof(IVanillaService), binding, RabbitMQTaskQueueUri.Create("localhost", 5672, Guid.NewGuid().ToString()));
             _svcHost.Open(TimeSpan.FromSeconds(30));
             var listener = _svcHost.ChannelDispatchers.Single().Listener;
-            Listener = (RabbitMQTaskQueueReplyChannelListener) listener.GetType().GetProperty("InnerChannelListener", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(listener, null);
+            Listener = (RabbitMQTaskQueueReplyChannelListener)listener.GetType().GetProperty("InnerChannelListener", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(listener, null);
         }
 
         private RabbitMQTaskQueueReplyChannelListener Listener { get; set; }
 
         protected override void Dispose(bool disposing)
         {
-            if(disposing)
+            if (disposing)
             {
                 _svcHost.Abort();
             }

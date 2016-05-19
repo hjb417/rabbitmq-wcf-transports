@@ -38,7 +38,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         {
             MethodInvocationTrace.Write();
             var queueName = "c" + Guid.NewGuid().ToString("N");
-            var localAddress = RabbitMQTaskQueueUri.Create(queueName, Constants.DefaultExchange, true, true, Binding.QueueTimeToLive);
+            var localAddress = RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, queueName);
             return (TChannel)(object)new RabbitMQTaskQueueClientDuplexChannel<TChannel>(Context, this, Binding, new EndpointAddress(localAddress), remoteAddress, BufferManager);
         }
     }

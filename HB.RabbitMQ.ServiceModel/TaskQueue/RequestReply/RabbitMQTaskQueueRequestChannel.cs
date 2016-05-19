@@ -30,7 +30,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         private IRabbitMQReader _queueReader;
         private readonly Func<Message, TimeSpan, Message> _requestFunc;
         private readonly BufferManager _bufferMgr;
-        private readonly RabbitMQTaskQueueUri _localAddress;
 
         public RabbitMQTaskQueueRequestChannel(
             BindingContext context,
@@ -40,22 +39,19 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             BufferManager bufferManger,
             RabbitMQTaskQueueBinding binding
             )
-            : base(context, channelManager, binding)
+            : base(context, channelManager, binding, new EndpointAddress(RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, "r" + Guid.NewGuid().ToString("N"))))
         {
             MethodInvocationTrace.Write();
-            _localAddress = RabbitMQTaskQueueUri.Create("r" + Guid.NewGuid().ToString("N"), Constants.DefaultExchange, true, true, binding.QueueTimeToLive);
+            RemoteAddress = remoteAddress;
             _bufferMgr = bufferManger;
             _requestFunc = Request;
-            RemoteAddress = remoteAddress;
             Via = via;
             RemoteUri = new RabbitMQTaskQueueUri(remoteAddress.Uri.ToString());
-            LocalAddress = new EndpointAddress(_localAddress);
         }
 
 
         public RabbitMQTaskQueueUri RemoteUri { get; private set; }
         public EndpointAddress RemoteAddress { get; private set; }
-        public EndpointAddress LocalAddress { get; private set; }
 
         public Uri Via { get; private set; }
 
@@ -71,11 +67,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
+            var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
             if (Binding.AutoCreateServerQueue)
             {
-                Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, RemoteUri.Exchange, RemoteUri.QueueName, RemoteUri.IsDurable, false, RemoteUri.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, RemoteUri.MaxPriority).Dispose();
+                Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, RemoteUri.QueueName, Binding.IsDurable, false, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority).Dispose();
             }
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, _localAddress.Exchange, _localAddress.QueueName, _localAddress.IsDurable, _localAddress.DeleteOnClose, _localAddress.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+            var localAddress = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localAddress.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
@@ -112,7 +110,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                     message.Headers.ReplyTo = LocalAddress;
                     isOneWayCall = false;
                 }
-                QueueWriter.Enqueue(RemoteUri.Exchange, RemoteUri.QueueName, message, _bufferMgr, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
+                QueueWriter.Enqueue(Binding.Exchange, RemoteUri.QueueName, message, _bufferMgr, Binding, MessageEncoderFactory, TimeSpan.MaxValue, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
                 return isOneWayCall
                     ? null
                     : _queueReader.Dequeue(Binding, MessageEncoderFactory, timeout, ConcurrentOperationManager.Token);

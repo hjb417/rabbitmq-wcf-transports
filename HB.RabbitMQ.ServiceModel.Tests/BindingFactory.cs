@@ -40,10 +40,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
                 ReceiveTimeout = TimeSpan.MaxValue,
                 SendTimeout = TimeSpan.MaxValue,
                 CloseTimeout = TimeSpan.MaxValue,
-                ConnectionFactory = new ConnectionFactory
-                {
-                    HostName = "localhost",
-                },
+                TimeToLive = TimeSpan.FromMinutes(10),
                 CommunicationObjectCreatedCallback = communicationObjectCreatedCallback,
             };
         }

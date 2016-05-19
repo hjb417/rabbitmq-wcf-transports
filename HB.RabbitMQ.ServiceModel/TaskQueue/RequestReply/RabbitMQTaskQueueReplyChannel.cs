@@ -41,16 +41,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             BufferManager bufferManger,
             RabbitMQTaskQueueBinding binding
             )
-            : base(context, channelManager, binding)
+            : base(context, channelManager, binding, localAddress)
         {
-            LocalAddress = localAddress;
             _waitForRequest = WaitForRequest;
             _bufferMgr = bufferManger;
             _receiveRequest = ReceiveRequest;
             _tryReceiveRequest = TryReceiveRequest;
         }
-
-        public EndpointAddress LocalAddress { get; private set; }
 
         protected override void OnOpen(TimeSpan timeout)
         {
@@ -58,7 +55,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
             var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(Binding.ConnectionFactory, url.Exchange, url.QueueName, url.IsDurable, url.DeleteOnClose, url.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, url.MaxPriority);
+            var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, url.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
@@ -119,7 +117,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             {
                 try
                 {
-                    queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(Binding.ConnectionFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
+                    var connFactory = Binding.CreateConnectionFactory(LocalAddress.Uri.Host, LocalAddress.Uri.Port);
+                    queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
                     ulong deliveryTag;
                     var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, out deliveryTag);
                     if (Binding.MessageConfirmationMode == MessageConfirmationModes.AfterReceive)

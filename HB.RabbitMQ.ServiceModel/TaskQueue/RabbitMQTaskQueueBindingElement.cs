@@ -46,20 +46,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             get { return ((RabbitMQReaderOptionsBindingElement)base[BindingPropertyNames.ReaderOptions]); }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.HostName, DefaultValue = DefaultValues.HostName)]
-        public string HostName
-        {
-            get { return ((string)base[BindingPropertyNames.HostName]); }
-            set { base[BindingPropertyNames.HostName] = value; }
-        }
-
-        [ConfigurationProperty(BindingPropertyNames.Port, DefaultValue = DefaultValues.Port)]
-        public int Port
-        {
-            get { return ((int)base[BindingPropertyNames.Port]); }
-            set { base[BindingPropertyNames.Port] = value; }
-        }
-
         [ConfigurationProperty(BindingPropertyNames.MaxBufferPoolSize, DefaultValue = DefaultValues.MaxBufferPoolSize)]
         public long MaxBufferPoolSize
         {
@@ -93,7 +79,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
             get { return ((MessageConfirmationModes)base[BindingPropertyNames.MessageConfirmationMode]); }
             set { base[BindingPropertyNames.MessageConfirmationMode] = value; }
-        }        
+        }
 
         [ConfigurationProperty(BindingPropertyNames.Password, DefaultValue = DefaultValues.Password)]
         public string Password
@@ -123,6 +109,62 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { base[BindingPropertyNames.Protocol] = value; }
         }
 
+        [ConfigurationProperty(BindingPropertyNames.Exchange, DefaultValue = DefaultValues.Exchange)]
+        public string Exchange
+        {
+            get { return ((string)base[BindingPropertyNames.Exchange]); }
+            set { base[BindingPropertyNames.Exchange] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.DeleteOnClose, DefaultValue = DefaultValues.DeleteOnClose)]
+        public bool DeleteOnClose
+        {
+            get { return ((bool)base[BindingPropertyNames.DeleteOnClose]); }
+            set { base[BindingPropertyNames.DeleteOnClose] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.TimeToLive, DefaultValue = DefaultValues.TimeToLive)]
+        public TimeSpan? TimeToLive
+        {
+            get { return ((TimeSpan?)base[BindingPropertyNames.TimeToLive]); }
+            set { base[BindingPropertyNames.TimeToLive] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.MaxPriority, DefaultValue = DefaultValues.MaxPriority)]
+        public int? MaxPriority
+        {
+            get { return ((int?)base[BindingPropertyNames.MaxPriority]); }
+            set { base[BindingPropertyNames.MaxPriority] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.IsDurable, DefaultValue = DefaultValues.IsDurable)]
+        public bool IsDurable
+        {
+            get { return ((bool)base[BindingPropertyNames.IsDurable]); }
+            set { base[BindingPropertyNames.IsDurable] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.AutomaticRecoveryEnabled, DefaultValue = DefaultValues.AutomaticRecoveryEnabled)]
+        public bool AutomaticRecoveryEnabled
+        {
+            get { return ((bool)base[BindingPropertyNames.AutomaticRecoveryEnabled]); }
+            set { base[BindingPropertyNames.AutomaticRecoveryEnabled] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.RequestedHeartbeat, DefaultValue = DefaultValues.RequestedHeartbeat)]
+        public TimeSpan RequestedHeartbeat
+        {
+            get { return ((TimeSpan)base[BindingPropertyNames.RequestedHeartbeat]); }
+            set { base[BindingPropertyNames.RequestedHeartbeat] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.UseBackgroundThreadsForIO, DefaultValue = DefaultValues.UseBackgroundThreadsForIO)]
+        public bool UseBackgroundThreadsForIO
+        {
+            get { return ((bool)base[BindingPropertyNames.UseBackgroundThreadsForIO]); }
+            set { base[BindingPropertyNames.UseBackgroundThreadsForIO] = value; }
+        }
+
         protected override Type BindingElementType
         {
             get { return typeof(RabbitMQTaskQueueBinding); }
@@ -139,7 +181,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
                     {
                         configProperties.Add(new ConfigurationProperty(attr.Name, prop.PropertyType, attr.DefaultValue));
                     }
-                } return configProperties;
+                }
+                return configProperties;
             }
         }
 
@@ -151,33 +194,15 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.QueueTimeToLive = QueueTimeToLive;
             rb.MessageConfirmationMode = MessageConfirmationMode;
             rb.AutoCreateServerQueue = AutoCreateServerQueue;
-            rb.ConnectionFactory = new ConnectionFactory
-            {
-                HostName = HostName,
-                Port = Port,
-                Protocol = GetRabbitMQProtocol(),
-                UserName = Username,
-                Password = Password,
-                VirtualHost = VirtualHost,
-                AutomaticRecoveryEnabled = true,
-                RequestedHeartbeat = 180,
-                UseBackgroundThreadsForIO = true,
-            };
+            rb.Username = Username;
+            rb.Password = Password;
+            rb.VirtualHost = VirtualHost;
+            rb.AutomaticRecoveryEnabled = AutomaticRecoveryEnabled;
+            rb.RequestedHeartbeat = RequestedHeartbeat;
+            rb.UseBackgroundThreadsForIO = UseBackgroundThreadsForIO;
+
             WriterOptions.ApplyConfiguration(rb.WriterOptions);
             ReaderOptions.ApplyConfiguration(rb.ReaderOptions);
-        }
-
-        private IProtocol GetRabbitMQProtocol()
-        {
-            if (AmqpProtocols.Default.Equals(Protocol, StringComparison.OrdinalIgnoreCase))
-            {
-                return Protocols.DefaultProtocol;
-            }
-            if (AmqpProtocols.v0_9_1.Equals(Protocol, StringComparison.OrdinalIgnoreCase))
-            {
-                return Protocols.AMQP_0_9_1;
-            }
-            throw new NotSupportedException();
         }
     }
 }

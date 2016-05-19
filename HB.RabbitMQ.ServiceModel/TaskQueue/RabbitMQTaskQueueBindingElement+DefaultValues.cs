@@ -41,6 +41,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public const bool AutoCreateServerQueue = false;
             public const string WriterOptions = null;
             public const string ReaderOptions = null;
+            public const string MaxPriority = null;
+            public const string TimeToLive = null;
+            public const string Exchange = Constants.DefaultExchange;
+            public const string DeleteOnClose = "false";
+            public const string IsDurable = "true";
+            public const string AutomaticRecoveryEnabled = "true";
+            public const string RequestedHeartbeat = "00:03";
+            public const string UseBackgroundThreadsForIO = "true";
         }
     }
 }

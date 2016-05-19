@@ -47,7 +47,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             if (context.ListenUriMode == ListenUriMode.Unique)
             {
                 var queueName = "l" + Guid.NewGuid().ToString("N");
-                _listenUri = RabbitMQTaskQueueUri.Create(queueName, Constants.DefaultExchange, true, true, Binding.QueueTimeToLive);
+                _listenUri = RabbitMQTaskQueueUri.Create(context.ListenUriBaseAddress.Host, context.ListenUriBaseAddress.Port, queueName);
             }
             else
             {

@@ -49,14 +49,8 @@ namespace ConsoleServer
 
         static ServiceHost CreateServerFromCode()
         {
-            var host = new ServiceHost(typeof(SimpleService), RabbitMQTaskQueueUri.Create("Contracts.ISimpleService"));
-            host.AddServiceEndpoint(typeof(ISimpleService), new RabbitMQTaskQueueBinding
-            {
-                ConnectionFactory = new ConnectionFactory
-                {
-                    HostName = "localhost",
-                }
-            }, "");
+            var host = new ServiceHost(typeof(SimpleService), RabbitMQTaskQueueUri.Create("localhost", 5672, "Contracts.ISimpleService"));
+            host.AddServiceEndpoint(typeof(ISimpleService), new RabbitMQTaskQueueBinding(), "");
             return host;
         }
     }
