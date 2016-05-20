@@ -65,7 +65,6 @@ namespace HB.RabbitMQ.ServiceModel
             args.Add(ReaderQueueArguments.UserDomainName, Environment.UserDomainName);
             args.Add(ReaderQueueArguments.AppDomainFriendlyName, AppDomain.CurrentDomain.FriendlyName);
             args.Add(ReaderQueueArguments.AppDomainFriendlId, AppDomain.CurrentDomain.Id);
-
 #if DEBUG
             args.Add(ReaderQueueArguments.Stacktrace, Environment.StackTrace);
 #endif
@@ -107,6 +106,11 @@ namespace HB.RabbitMQ.ServiceModel
         public QueueDeclareOk QueueDeclarePassive(TimeSpan timeout, CancellationToken cancelToken)
         {
             return PerformAction(model => model.QueueDeclarePassive(_queueName), timeout, cancelToken);
+        }
+
+        public uint MessageCount(TimeSpan timeout, CancellationToken cancelToken)
+        {
+            return PerformAction(model => model.MessageCount(_queueName), timeout, cancelToken);
         }
     }
 }

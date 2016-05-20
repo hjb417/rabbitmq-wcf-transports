@@ -84,6 +84,16 @@ namespace HB.RabbitMQ.ServiceModel
             return _conn.QueueDeclarePassive(timeout, cancelToken);
         }
 
+        public uint MessageCount(TimeSpan timeout, CancellationToken cancelToken)
+        {
+            if (_softCloseRequested)
+            {
+                return 0;
+            }
+            //MethodInvocationTrace.Write();
+            return _conn.MessageCount(timeout, cancelToken);
+        }
+
         public bool WaitForMessage(TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();
@@ -103,8 +113,8 @@ namespace HB.RabbitMQ.ServiceModel
                     }
                     try
                     {
-                        var queueInfo = QueryQueue(timeoutTimer.RemainingTime, opCancelToken.Token);
-                        if (queueInfo.MessageCount > 0)
+                        var msgCount = MessageCount(timeoutTimer.RemainingTime, opCancelToken.Token);
+                        if (msgCount > 0)
                         {
                             return true;
                         }

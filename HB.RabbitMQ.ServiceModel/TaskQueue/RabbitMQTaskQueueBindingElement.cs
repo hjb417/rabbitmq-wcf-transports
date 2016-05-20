@@ -38,12 +38,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public RabbitMQWriterOptionsBindingElement WriterOptions
         {
             get { return ((RabbitMQWriterOptionsBindingElement)base[BindingPropertyNames.WriterOptions]); }
+            set { base[BindingPropertyNames.WriterOptions] = value; }
         }
 
         [ConfigurationProperty(BindingPropertyNames.ReaderOptions, DefaultValue = DefaultValues.ReaderOptions)]
         public RabbitMQReaderOptionsBindingElement ReaderOptions
         {
             get { return ((RabbitMQReaderOptionsBindingElement)base[BindingPropertyNames.ReaderOptions]); }
+            set { base[BindingPropertyNames.ReaderOptions] = value; }
         }
 
         [ConfigurationProperty(BindingPropertyNames.MaxBufferPoolSize, DefaultValue = DefaultValues.MaxBufferPoolSize)]

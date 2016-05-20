@@ -32,6 +32,7 @@ namespace HB.RabbitMQ.ServiceModel
         void AcknowledgeMessage(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken);
         void RejectMessage(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken);
         QueueDeclareOk QueryQueue(TimeSpan timeout, CancellationToken cancelToken);
+        uint MessageCount(TimeSpan timeout, CancellationToken cancelToken);
         DequeueResult Dequeue(TimeSpan timeout, CancellationToken cancelToken);
         bool WaitForMessage(TimeSpan timeout, CancellationToken cancelToken);
         void SoftClose();

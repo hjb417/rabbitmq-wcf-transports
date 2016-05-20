@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using RabbitMQ.Client;
@@ -28,6 +29,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {
     public sealed class RabbitMQTaskQueueBinding : CustomBinding
     {
+        private static readonly Process _proc = Process.GetCurrentProcess();
         private RabbitMQTransportBindingElement _transport;
         private RabbitMQReaderOptions _rdrOptions = new RabbitMQReaderOptions();
         private RabbitMQWriterOptions _writerOptions = new RabbitMQWriterOptions();
@@ -126,7 +128,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 
         public ConnectionFactory CreateConnectionFactory(string hostName, int port)
         {
-            return new ConnectionFactory
+            var connFactory = new ConnectionFactory
             {
                 Protocol = GetRabbitMQProtocol(),
                 HostName = hostName,
@@ -135,9 +137,25 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
                 Password = Password,
                 VirtualHost = VirtualHost,
                 AutomaticRecoveryEnabled = AutomaticRecoveryEnabled,
-                RequestedHeartbeat = (ushort) RequestedHeartbeat.TotalSeconds,
+                RequestedHeartbeat = (ushort)RequestedHeartbeat.TotalSeconds,
                 UseBackgroundThreadsForIO = UseBackgroundThreadsForIO,
             };
+            connFactory.ClientProperties.Add(ReaderQueueArguments.ProcessStartTime, ((DateTimeOffset)_proc.StartTime).ToString());
+            connFactory.ClientProperties.Add(ReaderQueueArguments.ProcessId, _proc.Id);
+            connFactory.ClientProperties.Add(ReaderQueueArguments.MachineName, Environment.MachineName);
+            connFactory.ClientProperties.Add(ReaderQueueArguments.CreationTime, DateTimeOffset.Now.ToString());
+            connFactory.ClientProperties.Add(ReaderQueueArguments.UserName, Environment.UserName);
+            connFactory.ClientProperties.Add(ReaderQueueArguments.UserDomainName, Environment.UserDomainName);
+            connFactory.ClientProperties.Add(ReaderQueueArguments.AppDomainFriendlyName, AppDomain.CurrentDomain.FriendlyName);
+            connFactory.ClientProperties.Add(ReaderQueueArguments.AppDomainFriendlId, AppDomain.CurrentDomain.Id);
+#if DEBUG
+            connFactory.ClientProperties.Add(ReaderQueueArguments.Stacktrace, Environment.StackTrace);
+#endif
+            if (ReaderOptions.IncludeProcessCommandLineInQueueArguments)
+            {
+                connFactory.ClientProperties.Add(ReaderQueueArguments.CommandLine, Environment.CommandLine);
+            }
+            return connFactory;
         }
 
         private IProtocol GetRabbitMQProtocol()

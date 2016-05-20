@@ -32,6 +32,7 @@ namespace HB.RabbitMQ.ServiceModel
 {
     internal abstract class RabbitMQConnectionBase : IDisposable
     {
+        private static readonly Process _proc = Process.GetCurrentProcess();
         private Tuple<IModel, IConnection> _modelAndConnection;
         private readonly IConnectionFactory _connFactory;
         private readonly object _modelLock = new object();
@@ -159,6 +160,7 @@ namespace HB.RabbitMQ.ServiceModel
 
         private Tuple<IModel, IConnection> Connect(TimeoutTimer timeoutTimer, CancellationToken cancelToken)
         {
+            var connName = $"{Environment.MachineName}:{_proc.ProcessName}:{_proc.Id}/{_proc.SessionId}";
             MethodInvocationTrace.Write();
             IConnection conn = null;
             IModel model = null;
@@ -169,7 +171,7 @@ namespace HB.RabbitMQ.ServiceModel
                 cancelToken.ThrowIfCancellationRequested();
                 try
                 {
-                    conn = _connFactory.CreateConnection();
+                    conn = _connFactory.CreateConnection(connName);
                     model = conn.CreateModel();
                     InitializeModel(model);
                     return Tuple.Create(model, conn);
