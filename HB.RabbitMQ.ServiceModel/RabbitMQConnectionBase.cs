@@ -254,6 +254,7 @@ namespace HB.RabbitMQ.ServiceModel
 
         private void TryCloseQueue()
         {
+            MethodInvocationTrace.Write();
             if (!_deleteQueueOnDispose || (_modelAndConnection == null))
             {
                 return;

@@ -73,7 +73,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                 Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, RemoteUri.QueueName, Binding.IsDurable, false, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority).Dispose();
             }
             var localAddress = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localAddress.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localAddress.QueueName, Binding.IsDurable, true, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
