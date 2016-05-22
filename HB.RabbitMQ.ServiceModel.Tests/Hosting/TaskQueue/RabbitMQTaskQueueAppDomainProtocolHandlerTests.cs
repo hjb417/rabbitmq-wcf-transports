@@ -55,7 +55,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.Tests.TaskQueue
         [Fact]
         public void StartListenerChannelRegistersWithWasInteropServiceTest()
         {
-            var listenerChannelId = Random.Next();
+            var listenerChannelId = Random.Next(0, 10);
             var appPath = Guid.NewGuid().ToString();
             var callback = CreateListenerChannelCallback(listenerChannelId, appPath);
             AppDomainProtocolHandler.StartListenerChannel(callback);
@@ -73,7 +73,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.Tests.TaskQueue
         [Fact]
         public void StopListenerChannelUnregistersWithAsInteropServiceTest()
         {
-            var listenerChannelId = Random.Next();
+            var listenerChannelId = Random.Next(0, 10);
             var callback = CreateListenerChannelCallback(listenerChannelId, Guid.NewGuid().ToString());
             AppDomainProtocolHandler.StartListenerChannel(callback);
             AppDomainProtocolHandler.StopListenerChannel(listenerChannelId, true);
@@ -83,7 +83,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.Tests.TaskQueue
         [Fact]
         public void StopListenerChannelInvokesReportStoppedTest()
         {
-            var listenerChannelId = Random.Next();
+            var listenerChannelId = Random.Next(0, 10);
             var callback = CreateListenerChannelCallback(listenerChannelId, Guid.NewGuid().ToString());
             AppDomainProtocolHandler.StartListenerChannel(callback);
             AppDomainProtocolHandler.StopListenerChannel(listenerChannelId, true);
@@ -93,7 +93,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.Tests.TaskQueue
         [Fact]
         public void StopProtocolReportStoppedTest()
         {
-            var listenerChannelId = Random.Next();
+            var listenerChannelId = Random.Next(0, 10);
             var callback = CreateListenerChannelCallback(listenerChannelId, Guid.NewGuid().ToString());
             AppDomainProtocolHandler.StartListenerChannel(callback);
             AppDomainProtocolHandler.StopProtocol(true);

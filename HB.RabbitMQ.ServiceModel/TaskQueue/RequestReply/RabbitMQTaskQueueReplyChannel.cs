@@ -23,6 +23,7 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
+using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
 {
@@ -34,13 +35,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         private readonly BufferManager _bufferMgr;
         private readonly TryReceiveRequestDelegate _tryReceiveRequest;
 
-        public RabbitMQTaskQueueReplyChannel(
-            BindingContext context,
-            ChannelManagerBase channelManager,
-            EndpointAddress localAddress,
-            BufferManager bufferManger,
-            RabbitMQTaskQueueBinding binding
-            )
+        public RabbitMQTaskQueueReplyChannel(BindingContext context, ChannelManagerBase channelManager, EndpointAddress localAddress, BufferManager bufferManger, RabbitMQTaskQueueBinding binding)
             : base(context, channelManager, binding, localAddress)
         {
             _waitForRequest = WaitForRequest;
@@ -121,6 +116,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                     queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
                     ulong deliveryTag;
                     var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, out deliveryTag);
+                    RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(request.Headers.To);
                     if (Binding.MessageConfirmationMode == MessageConfirmationModes.AfterReceive)
                     {
                         _queueReader.AcknowledgeMessage(deliveryTag, TimeSpan.MaxValue, CancellationToken.None);

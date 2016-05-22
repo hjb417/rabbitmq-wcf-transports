@@ -32,6 +32,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 
         public RabbitMQTaskQueueProcessProtocolHandler()
         {
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueProcessProtocolHandler)}.ctor: Creating instance of Process Protocol Handler.");
         }
 
         public override void StartListenerChannel(IListenerChannelCallback listenerChannelCallback, IAdphManager adphManager)

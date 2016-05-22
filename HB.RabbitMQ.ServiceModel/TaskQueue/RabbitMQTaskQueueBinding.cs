@@ -33,7 +33,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private RabbitMQTransportBindingElement _transport;
         private RabbitMQReaderOptions _rdrOptions = new RabbitMQReaderOptions();
         private RabbitMQWriterOptions _writerOptions = new RabbitMQWriterOptions();
-        private TimeSpan? _ttl = TimeSpan.FromMinutes(20);
+        private TimeSpan? _ttl;
         private IRabbitMQReaderWriterFactory _queueRwFactory = RabbitMQReaderWriterFactory.Instance;
         private MessageConfirmationModes _confMode = MessageConfirmationModes.BeforeReply;
         private string _exchange = Constants.DefaultExchange;

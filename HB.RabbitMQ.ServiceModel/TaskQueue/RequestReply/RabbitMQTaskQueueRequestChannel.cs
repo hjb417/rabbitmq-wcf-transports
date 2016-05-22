@@ -31,14 +31,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         private readonly Func<Message, TimeSpan, Message> _requestFunc;
         private readonly BufferManager _bufferMgr;
 
-        public RabbitMQTaskQueueRequestChannel(
-            BindingContext context,
-            ChannelManagerBase channelManager,
-            EndpointAddress remoteAddress,
-            Uri via,
-            BufferManager bufferManger,
-            RabbitMQTaskQueueBinding binding
-            )
+        public RabbitMQTaskQueueRequestChannel(BindingContext context, ChannelManagerBase channelManager, EndpointAddress remoteAddress, Uri via, BufferManager bufferManger, RabbitMQTaskQueueBinding binding)
             : base(context, channelManager, binding, new EndpointAddress(RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, "r" + Guid.NewGuid().ToString("N"))))
         {
             MethodInvocationTrace.Write();

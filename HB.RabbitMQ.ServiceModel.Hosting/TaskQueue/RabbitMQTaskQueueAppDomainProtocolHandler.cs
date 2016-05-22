@@ -39,6 +39,10 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
             Trace.TraceInformation($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.ctor: Creating instance of AppDomain Protocol Handler.");
         }
 
+        public static void ReportMessageReceived(Uri requestUri)
+        {
+        }
+
         public override void StartListenerChannel(IListenerChannelCallback listenerChannelCallback)
         {
             var listenerChannelId = listenerChannelCallback.GetId();
@@ -52,6 +56,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 
             _wasInteropSvc = _channelFactory.CreateChannel();
             callback.Service = _wasInteropSvc;
+
             _wasInteropSvc.Register(listenerChannelId, setup.ApplicationPath);
 
             listenerChannelCallback.ReportStarted();

@@ -23,6 +23,7 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml;
+using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
@@ -62,8 +63,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             {
                 return null;
             }
-            var queueName = "s" + Guid.NewGuid().ToString("N");
-            var localAddress = new EndpointAddress(RabbitMQTaskQueueUri.Create(Uri.Host, Uri.Port, queueName));
+            var localUri = RabbitMQTaskQueueUri.Create(Uri.Host, Uri.Port, "s" + Guid.NewGuid().ToString("N"));
+            var localAddress = new EndpointAddress(localUri);
             var createSessionResp = new CreateSessionResponse();
             Message msg = null;
             try
@@ -81,6 +82,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                         Fault();
                         throw;
                     }
+                    RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(_listenUri);
                     createSessionRespMsg.Headers.ReplyTo = localAddress;
                     createSessionRespMsg.Headers.From = new EndpointAddress(_listenUri);
                     createSessionRespMsg.Headers.To = msg.Headers.ReplyTo.Uri;
@@ -93,7 +95,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     try
                     {
                         var connFactory = Binding.CreateConnectionFactory(clientUri.Host, clientUri.Port);
-                        reader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, queueName, false, true, Binding.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+                        reader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localUri.QueueName, false, true, Binding.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
                         _writer.Enqueue(Binding.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                         return (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader);
                     }

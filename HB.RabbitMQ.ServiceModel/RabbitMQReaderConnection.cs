@@ -69,17 +69,23 @@ namespace HB.RabbitMQ.ServiceModel
             args.Add(ReaderQueueArguments.Stacktrace, Environment.StackTrace);
 #endif
 
+            var autoDeleteQueue = !_isDurable;
+            var queueTtl = _queueTtl;
+            if(autoDeleteQueue && !queueTtl.HasValue)
+            {
+                queueTtl = TimeSpan.FromMinutes(20);
+            }
             var appIdentity = AppDomain.CurrentDomain.ApplicationIdentity;
             args.Add(ReaderQueueArguments.ApplicationIdentity, (appIdentity == null) ? string.Empty : appIdentity.ToString());
-            if (_queueTtl.HasValue)
+            if (queueTtl.HasValue)
             {
-                args.Add("x-expires", (int)_queueTtl.Value.TotalMilliseconds);
+                args.Add("x-expires", (int)queueTtl.Value.TotalMilliseconds);
             }
             if(_maxPriority.HasValue)
             {
                 args.Add("x-max-priority", _maxPriority.Value);
             }
-            model.QueueDeclare(_queueName, true, false, !_isDurable, args);
+            model.QueueDeclare(_queueName, true, false, autoDeleteQueue, args);
             Debug.WriteLine("{0}-{1}: Declared queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _queueName);
             model.QueueBind(_queueName, _exchange, _queueName);
             Debug.WriteLine("{0}-{1}: Bound to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _queueName);

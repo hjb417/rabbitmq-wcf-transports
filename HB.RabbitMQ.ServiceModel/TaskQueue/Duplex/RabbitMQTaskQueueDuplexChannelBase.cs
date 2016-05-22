@@ -22,6 +22,7 @@ THE SOFTWARE.
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
@@ -230,6 +231,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     {
                         continue;
                     }
+                    //RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(ListenerChannelSetup);
                     msg.Headers.To = BindingContext.ListenUriBaseAddress;
                     if (msg.Headers.Action == Actions.CloseSessionRequest)
                     {

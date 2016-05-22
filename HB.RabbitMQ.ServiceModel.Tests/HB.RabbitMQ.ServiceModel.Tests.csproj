@@ -96,6 +96,7 @@
     <Compile Include="ExtensionMethods\AppDomainExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\TaskExtensionMethods.cs" />
     <Compile Include="Hosting\TaskQueue\RabbitMQTaskQueueAppDomainProtocolHandlerTests.cs" />
+    <Compile Include="Hosting\TaskQueue\RabbitMQTaskQueueProcessProtocolHandlerTests.cs" />
     <Compile Include="SelfHostedService+InstanceContextProvider.cs" />
     <Compile Include="SelfHostedService+MessageInspector.cs" />
     <Compile Include="SelfHostedService.cs" />

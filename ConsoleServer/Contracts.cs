@@ -3,7 +3,7 @@
 namespace Contracts
 {
     [ServiceContract(SessionMode = SessionMode.NotAllowed)]
-    //[ServiceContract()]
+    //[ServiceContract(SessionMode = SessionMode.Required, CallbackContract = typeof(ISimpleServiceCallback))]
     public interface ISimpleService
     {
         [OperationContract]
