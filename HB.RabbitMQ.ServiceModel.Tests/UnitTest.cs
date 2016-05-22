@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {
     public abstract class UnitTest : IDisposable
     {
-        protected UnitTest()
+        private readonly TestOutputHelperTraceListener _xunitTraceListener;
+
+        protected UnitTest(ITestOutputHelper outputHelper)
         {
+            _xunitTraceListener = new TestOutputHelperTraceListener(outputHelper);
+            Trace.Listeners.Add(_xunitTraceListener);
         }
 
         ~UnitTest()
@@ -18,6 +24,13 @@ namespace HB.RabbitMQ.ServiceModel.Tests
 
         protected virtual void Dispose(bool disposing)
         {
+            if(disposing)
+            {
+                if (_xunitTraceListener != null)
+                {
+                    Trace.Listeners.Remove(_xunitTraceListener);
+                }
+            }
         }
 
         protected void WaitForTaskToFinish(Task task, TimeSpan timeout)

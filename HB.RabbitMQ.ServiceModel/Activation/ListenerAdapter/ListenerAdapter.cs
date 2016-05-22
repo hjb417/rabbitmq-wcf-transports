@@ -30,7 +30,7 @@ using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter
 {
-    public class ListenerAdapter : IDisposable
+    public class ListenerAdapter : IListenerAdapter
     {
         private WebhostListenerCallbacks _callbacks;
         private WebHostProtocolSafeHandle _protocolHandle;

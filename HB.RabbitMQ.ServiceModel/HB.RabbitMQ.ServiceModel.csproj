@@ -72,11 +72,13 @@
     <Compile Include="Activation\ListenerAdapter\ApplicationPoolStates.cs" />
     <Compile Include="Activation\ListenerAdapter\ApplicationRequestBlockedStateChangedEventArgs.cs" />
     <Compile Include="Activation\ListenerAdapter\ApplicationRequestsBlockedStates.cs" />
+    <Compile Include="Activation\ListenerAdapter\IListenerAdapter.cs" />
     <Compile Include="Activation\ListenerAdapter\ListenerAdapter.cs" />
     <Compile Include="Activation\ListenerAdapter\WindowsProcessActivationServiceDisconnectedEventArgs.cs" />
     <Compile Include="Diagnostics\TraceHelper.cs" />
     <Compile Include="ExtensionMethods\ConcurrentDictionaryExtensionMethods.cs" />
     <Compile Include="PredeclaredExchangeNames.cs" />
+    <Compile Include="TaskQueue\Activation\IRabbitMQQueueMonitor.cs" />
     <Compile Include="TaskQueue\Activation\MessagePublicationNotificationService+Client.cs" />
     <Compile Include="TaskQueue\Activation\MessagePublicationNotificationService.cs" />
     <Compile Include="TaskQueue\Activation\MessagePublishedEventArgs.cs" />

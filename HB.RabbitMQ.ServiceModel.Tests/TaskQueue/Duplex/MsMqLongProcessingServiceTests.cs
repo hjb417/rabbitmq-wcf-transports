@@ -1,4 +1,5 @@
 ﻿using System.Messaging;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 {
@@ -6,8 +7,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
     {
         private readonly string _queueName;
 
-        public MsMqLongProcessingServiceTests()
-            : base(BindingTypes.DuplexMsmq)
+        public MsMqLongProcessingServiceTests(ITestOutputHelper outputHelper)
+            : base(BindingTypes.DuplexMsmq, outputHelper)
         {
             _queueName = Server.QueueName;
         }

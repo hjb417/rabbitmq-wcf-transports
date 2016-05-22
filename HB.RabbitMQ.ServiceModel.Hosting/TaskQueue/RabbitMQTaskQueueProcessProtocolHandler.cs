@@ -69,6 +69,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 
         public override void StopProtocol(bool immediate)
         {
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueProcessProtocolHandler)}.{nameof(StopProtocol)}."); 
         }
     }
 }

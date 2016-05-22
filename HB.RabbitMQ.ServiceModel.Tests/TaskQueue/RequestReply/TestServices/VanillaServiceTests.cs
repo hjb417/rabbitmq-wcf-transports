@@ -1,4 +1,5 @@
 ﻿using HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices.VanillaService;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices
 {
@@ -7,7 +8,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices
         private bool _unloadClientAppDomain = true;
         private bool _unloadServerAppDomain = true;
 
-        protected VanillaServiceTests(BindingTypes bindingType)
+        protected VanillaServiceTests(BindingTypes bindingType, ITestOutputHelper outputHelper)
+            : base(outputHelper)
         {
             Server = ServiceFactory.CreateServer<IVanillaService, VanillaService.VanillaService>(bindingType);
             Client = ServiceFactory.CreateClient<VanillaServiceClient>(bindingType, Server.ServiceUri, null);

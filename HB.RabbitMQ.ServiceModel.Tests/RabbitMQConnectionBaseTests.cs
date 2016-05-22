@@ -6,12 +6,14 @@ using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {
     public partial class RabbitMQConnectionBaseTests : UnitTest
     {
-        public RabbitMQConnectionBaseTests()
+        public RabbitMQConnectionBaseTests(ITestOutputHelper outputHelper)
+            : base(outputHelper)
         {
             var connFactory = Substitute.For<IConnectionFactory>();
             Connection = new RabbitMQQueueConnection(connFactory);
@@ -26,13 +28,6 @@ namespace HB.RabbitMQ.ServiceModel.Tests
                 Connection.Dispose();
             }
             base.Dispose(disposing);
-        }
-
-        [Fact]
-        public void Test()
-        {
-            var foo = new RabbitMQTaskQueueUri("hb.rmqtq://WcfServer.Service1/WcfServer/A/B/C?durable=false");
-            return;
         }
 
         [Fact]

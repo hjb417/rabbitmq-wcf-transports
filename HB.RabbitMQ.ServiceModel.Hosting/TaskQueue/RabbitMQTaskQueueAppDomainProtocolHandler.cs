@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.Web.Hosting;
@@ -35,6 +36,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 
         public RabbitMQTaskQueueAppDomainProtocolHandler()
         {
+            Trace.TraceInformation($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.ctor: Creating instance of AppDomain Protocol Handler.");
         }
 
         public override void StartListenerChannel(IListenerChannelCallback listenerChannelCallback)
@@ -47,7 +49,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 
             var callback = new WasInteropServiceCallback(listenerChannelId);
             _channelFactory = new DuplexChannelFactory<IWasInteropService>(new InstanceContext(callback), NetNamedPipeBindingFactory.Create(), new EndpointAddress(setup.MessagePublicationNotificationServiceUri));
-            
+
             _wasInteropSvc = _channelFactory.CreateChannel();
             callback.Service = _wasInteropSvc;
             _wasInteropSvc.Register(listenerChannelId, setup.ApplicationPath);
@@ -60,6 +62,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
         {
             Trace.TraceInformation($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.{nameof(StopListenerChannel)}: Stopping listener channel for channel id [{listenerChannelId}].");
             _wasInteropSvc.Unregister(listenerChannelId);
+            CloseWcfClient();
             _listenerChannelCallback.ReportStopped(0);
             Trace.TraceInformation($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.{nameof(StopListenerChannel)}: Stopped listener channel for channel id [{listenerChannelId}].");
         }
@@ -67,9 +70,31 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
         public override void StopProtocol(bool immediate)
         {
             Trace.TraceInformation($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.{nameof(StopProtocol)}: Stopping protocol.");
+            CloseWcfClient();
             _listenerChannelCallback.ReportStopped(0);
             HostingEnvironment.UnregisterObject(this);
             Trace.TraceInformation($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.{nameof(StopProtocol)}: Stopped protocol.");
+        }
+
+        private void CloseWcfClient()
+        {
+            bool abort = true;
+            try
+            {
+                _channelFactory.Close();
+                abort = false;
+            }
+            catch (Exception e) when (e is TimeoutException || e is CommunicationException)
+            {
+            }
+            finally
+            {
+                if (abort)
+                {
+                    Trace.TraceWarning($"{nameof(RabbitMQTaskQueueAppDomainProtocolHandler)}.{nameof(CloseWcfClient)}: The callback channel is being aborted.");
+                    _channelFactory.Abort();
+                }
+            }
         }
     }
 }

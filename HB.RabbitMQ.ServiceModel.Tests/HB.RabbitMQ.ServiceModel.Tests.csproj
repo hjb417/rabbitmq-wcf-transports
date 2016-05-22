@@ -54,6 +54,7 @@
     <Reference Include="System.Messaging" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
     <Reference Include="System.XML" />
     <Reference Include="xunit.abstractions">
       <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
@@ -94,10 +95,12 @@
     <Compile Include="ConcurrentOperationManagerTests.cs" />
     <Compile Include="ExtensionMethods\AppDomainExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\TaskExtensionMethods.cs" />
+    <Compile Include="Hosting\TaskQueue\RabbitMQTaskQueueAppDomainProtocolHandlerTests.cs" />
     <Compile Include="SelfHostedService+InstanceContextProvider.cs" />
     <Compile Include="SelfHostedService+MessageInspector.cs" />
     <Compile Include="SelfHostedService.cs" />
     <Compile Include="ServiceFactory.cs" />
+    <Compile Include="TaskQueue\Activation\MessagePublicationNotificationServiceTests.cs" />
     <Compile Include="TaskQueue\Duplex\LongProcessingServiceTests.cs" />
     <Compile Include="TaskQueue\Duplex\MsMqLongProcessingServiceTests.cs" />
     <Compile Include="TaskQueue\Duplex\RabbitMQLongProcessingServiceTests.cs" />
@@ -119,10 +122,15 @@
     <Compile Include="RabbitMQConnectionBaseTests+RabbitMqQueueConnection.cs" />
     <Compile Include="RabbitMQConnectionBaseTests.cs" />
     <Compile Include="ServiceHostTests.cs" />
+    <Compile Include="TestOutputHelperTraceListener.cs" />
     <Compile Include="TimeoutTimerTests.cs" />
     <Compile Include="UnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HB.RabbitMQ.ServiceModel.Hosting\HB.RabbitMQ.ServiceModel.Hosting.csproj">
+      <Project>{63632c06-1bb8-438f-8714-a5f66f86be76}</Project>
+      <Name>HB.RabbitMQ.ServiceModel.Hosting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HB.RabbitMq.ServiceModel\HB.RabbitMQ.ServiceModel.csproj">
       <Project>{1acc030c-3071-4290-acd9-b76cb7a651bd}</Project>
       <Name>HB.RabbitMQ.ServiceModel</Name>

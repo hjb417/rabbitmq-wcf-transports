@@ -2,6 +2,7 @@
 using System.ServiceModel;
 using RabbitMQ.Client;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices
 {
@@ -9,8 +10,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices
     {
         private readonly string _queueName;
 
-        public RabbitMQVanillaServiceTests()
-            : base(BindingTypes.RabbitMQTaskQueue)
+        public RabbitMQVanillaServiceTests(ITestOutputHelper outputHelper)
+            : base(BindingTypes.RabbitMQTaskQueue, outputHelper)
         {
             _queueName = Server.QueueName;
         }

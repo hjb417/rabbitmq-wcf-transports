@@ -5,11 +5,17 @@ using NSubstitute;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {
     public class RabbitMessageQueueWriterTests : UnitTest
     {
+        public RabbitMessageQueueWriterTests(ITestOutputHelper outputHelper)
+            : base(outputHelper)
+        {
+        }
+
         [Fact]
         public void ConfirmSelectIsEnabledTest()
         {

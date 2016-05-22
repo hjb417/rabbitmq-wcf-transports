@@ -34,14 +34,22 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.ServiceModel
         public static Binding Create()
         {
             var binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None);
-            binding.CloseTimeout = TimeSpan.MaxValue;
-            binding.MaxConnections = int.MaxValue;
-            binding.MaxReceivedMessageSize = int.MaxValue;
-            binding.OpenTimeout = TimeSpan.MaxValue;
+            binding.CloseTimeout = TimeSpan.FromSeconds(5);
+            binding.OpenTimeout = TimeSpan.FromSeconds(5);
             binding.ReceiveTimeout = TimeSpan.MaxValue;
             binding.SendTimeout = TimeSpan.MaxValue;
+
             binding.TransactionFlow = false;
+            binding.MaxConnections = short.MaxValue;
+            binding.MaxReceivedMessageSize = int.MaxValue;
+            binding.MaxBufferPoolSize = 0;
             binding.Security.Transport.ProtectionLevel = ProtectionLevel.None;
+
+            binding.ReaderQuotas.MaxDepth = int.MaxValue;
+            binding.ReaderQuotas.MaxArrayLength = int.MaxValue;
+            binding.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
+            binding.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
+            binding.ReaderQuotas.MaxStringContentLength = int.MaxValue;
             return binding;
         }
     }

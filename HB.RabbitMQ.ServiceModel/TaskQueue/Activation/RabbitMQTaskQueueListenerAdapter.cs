@@ -44,23 +44,29 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
         private readonly Dictionary<string, ApplicationInfo> _apps = new Dictionary<string, ApplicationInfo>();
         private readonly Dictionary<string, ApplicationPoolInfo> _appPools = new Dictionary<string, ApplicationPoolInfo>();
-        private readonly ListenerAdapter _listenerAdapter;
-        private readonly RabbitMQQueueMonitor _queueMon;
+        private readonly IListenerAdapter _listenerAdapter;
+        private readonly IRabbitMQQueueMonitor _queueMon;
         private readonly LimitedConcurrencyLevelTaskScheduler _taskScheduler = new LimitedConcurrencyLevelTaskScheduler(1);
         private volatile bool _isDisposed;
         private Uri _messagePublicationNotificationServiceUri = new Uri($"net.pipe://localhost/RabbitMQTaskQueueListenerAdapter_{Guid.NewGuid():N}");
         private readonly ServiceHost _msgPubNotificationSvcHost;
 
         public RabbitMQTaskQueueListenerAdapter(Uri rabbitMqManagementUri, TimeSpan pollInterval)
+            : this(() => new ListenerAdapter(Constants.Scheme), () => new RabbitMQQueueMonitor(rabbitMqManagementUri, pollInterval))
         {
-            _queueMon = new RabbitMQQueueMonitor(rabbitMqManagementUri, pollInterval);
+        }
+
+        internal RabbitMQTaskQueueListenerAdapter(Func<IListenerAdapter> listenerAdapterFactory, Func<IRabbitMQQueueMonitor> queueMionitorFactory)
+        {
+            _queueMon = queueMionitorFactory();
             _queueMon.MessagePublished += QueueMonitor_MessagePublished;
 
             _msgPubNotificationSvcHost = new ServiceHost(new MessagePublicationNotificationService(_queueMon), _messagePublicationNotificationServiceUri);
             _msgPubNotificationSvcHost.AddServiceEndpoint(typeof(IWasInteropService), NetNamedPipeBindingFactory.Create(), string.Empty);
             _msgPubNotificationSvcHost.Open();
 
-            _listenerAdapter = new ListenerAdapter(Constants.Scheme);
+            _listenerAdapter = listenerAdapterFactory();
+
             _listenerAdapter.ApplicationCreated += ListenerAdapter_ApplicationCreated;
             _listenerAdapter.ApplicationDeleted += ListenerAdapter_ApplicationDeleted;
             _listenerAdapter.ApplicationRequestBlockedStateChanged += ListenerAdapter_ApplicationRequestBlockedStateChanged;

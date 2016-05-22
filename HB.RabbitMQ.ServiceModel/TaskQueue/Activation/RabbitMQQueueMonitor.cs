@@ -31,7 +31,7 @@ using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    internal class RabbitMQQueueMonitor : IDisposable
+    internal class RabbitMQQueueMonitor : IRabbitMQQueueMonitor
     {
         private readonly Timer _refreshTimer;
         private readonly JavaScriptSerializer _deserializer = new JavaScriptSerializer();

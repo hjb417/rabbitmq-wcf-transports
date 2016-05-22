@@ -29,15 +29,22 @@ using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false)]
+    [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false, IncludeExceptionDetailInFaults = true, MaxItemsInObjectGraph = int.MaxValue)]
     internal sealed partial class MessagePublicationNotificationService : IWasInteropService, IDisposable
     {
         private ConcurrentDictionary<int, Client> _appDomainHandlers = new ConcurrentDictionary<int, Client>();
         private readonly Timer _keepAliveTimer;
-        private RabbitMQQueueMonitor _queueMon;
+        private IRabbitMQQueueMonitor _queueMon;
+        private readonly Func<IWasInteropServiceCallback> _getCallbackFunc;
 
-        public MessagePublicationNotificationService(RabbitMQQueueMonitor queueMonitor)
+        public MessagePublicationNotificationService(IRabbitMQQueueMonitor queueMonitor)
+            : this(queueMonitor, () => OperationContext.Current.GetCallbackChannel<IWasInteropServiceCallback>())
         {
+        }
+
+        internal MessagePublicationNotificationService(IRabbitMQQueueMonitor queueMonitor, Func<IWasInteropServiceCallback> getCallbackFunc)
+        {
+            _getCallbackFunc = getCallbackFunc;
             _queueMon = queueMonitor;
             _queueMon.MessagePublished += QueueMonitor_MessagePublished;
             var keepAliveInterval = TimeSpan.FromMinutes(5);
@@ -66,7 +73,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         public void Register(int listenerChannelId, string applicationPath)
         {
             TraceInformation($"Register({nameof(listenerChannelId)}={listenerChannelId}, {nameof(applicationPath)}={applicationPath})", GetType());
-            var callback = OperationContext.Current.GetCallbackChannel<IWasInteropServiceCallback>();
+            var callback = _getCallbackFunc();
             var client = new Client(callback, applicationPath);
             _appDomainHandlers.TryAdd(listenerChannelId, client);
 

@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 {
@@ -6,8 +7,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
     {
         private readonly string _queueName;
 
-        public RabbitMQLongProcessingServiceTests()
-            : base(BindingTypes.RabbitMQTaskQueue)
+        public RabbitMQLongProcessingServiceTests(ITestOutputHelper outputHelper)
+            : base(BindingTypes.RabbitMQTaskQueue, outputHelper)
         {
             _queueName = Server.QueueName;
         }

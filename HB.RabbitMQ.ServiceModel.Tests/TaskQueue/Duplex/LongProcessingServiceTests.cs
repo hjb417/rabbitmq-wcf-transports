@@ -7,6 +7,7 @@ using System.ServiceModel.Channels;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex.TestServices.LongProcessingService;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 {
@@ -27,7 +28,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 
         private readonly string _clientQueueName;
 
-        protected LongProcessingServiceTests(BindingTypes bindingType)
+        protected LongProcessingServiceTests(BindingTypes bindingType, ITestOutputHelper outputHelper)
+            : base(outputHelper)
         {
             Server = ServiceFactory.CreateServer<ILongProcessingService, LongProcessingService>(bindingType);
             Server.Service.SleepTime = _processSleepTime;

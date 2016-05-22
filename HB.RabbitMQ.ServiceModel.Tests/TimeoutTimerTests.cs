@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {
     public class TimeoutTimerTests : UnitTest
     {
+        public TimeoutTimerTests(ITestOutputHelper outputHelper)
+            : base(outputHelper)
+        {
+        }
+
         [Fact]
         public void RemainingTimeIsNeverNegativeTest()
         {

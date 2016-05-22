@@ -7,6 +7,7 @@ using HB.RabbitMQ.ServiceModel.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply;
 using HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices.VanillaService;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply
 {
@@ -14,7 +15,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply
     {
         private readonly ServiceHost _svcHost;
 
-        public RabbitMQTaskQueueReplyChannelListenerTests()
+        public RabbitMQTaskQueueReplyChannelListenerTests(ITestOutputHelper outputHelper)
+            : base(outputHelper)
         {
             var binding = BindingFactory.Create(BindingTypes.RabbitMQTaskQueue, null, null);
             _svcHost = new ServiceHost(typeof(VanillaService));

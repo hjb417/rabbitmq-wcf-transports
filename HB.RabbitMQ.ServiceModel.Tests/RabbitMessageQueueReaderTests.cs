@@ -6,12 +6,14 @@ using HB.RabbitMQ.ServiceModel.Throttling;
 using NSubstitute;
 using RabbitMQ.Client;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {
     public class RabbitMessageQueueReaderTests : UnitTest
     {
-        public RabbitMessageQueueReaderTests()
+        public RabbitMessageQueueReaderTests(ITestOutputHelper outputHelper)
+            : base(outputHelper)
         {
             Reader = new RabbitMQReader(TestConnectionFactory.Instance, "amq.direct", Guid.NewGuid().ToString(), false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null);
         }

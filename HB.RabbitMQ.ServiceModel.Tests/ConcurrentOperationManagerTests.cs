@@ -2,12 +2,14 @@
 using System.Diagnostics;
 using System.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {
     public class ConcurrentOperationManagerTests : UnitTest
     {
-        public ConcurrentOperationManagerTests()
+        public ConcurrentOperationManagerTests(ITestOutputHelper outputHelper)
+            : base(outputHelper)
         {
             ConcurrentOperationManager = new ConcurrentOperationManager(GetType().FullName);
         }
