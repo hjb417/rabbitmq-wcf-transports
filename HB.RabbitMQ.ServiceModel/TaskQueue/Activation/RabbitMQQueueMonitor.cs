@@ -27,7 +27,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Web.Script.Serialization;
-using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {

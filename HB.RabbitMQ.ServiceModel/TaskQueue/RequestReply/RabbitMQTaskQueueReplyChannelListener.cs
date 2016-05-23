@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Contracts;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
-using RabbitMQ.Client;
 
 namespace ConsoleClient
 {

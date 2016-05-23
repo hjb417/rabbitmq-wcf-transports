@@ -3,7 +3,6 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
-using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel.Tests
 {

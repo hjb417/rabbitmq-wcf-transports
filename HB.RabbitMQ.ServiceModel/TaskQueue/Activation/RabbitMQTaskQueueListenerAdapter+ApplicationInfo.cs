@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Text;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;

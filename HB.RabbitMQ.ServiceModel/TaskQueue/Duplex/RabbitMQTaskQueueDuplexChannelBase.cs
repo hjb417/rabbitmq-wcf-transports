@@ -22,7 +22,6 @@ THE SOFTWARE.
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex

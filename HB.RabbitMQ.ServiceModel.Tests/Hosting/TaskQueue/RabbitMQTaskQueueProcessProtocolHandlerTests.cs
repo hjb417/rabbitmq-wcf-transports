@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
-using System.ServiceModel;
-using System.ServiceModel.Description;
 using System.Web.Hosting;
-using HB.RabbitMQ.ServiceModel.Hosting.ServiceModel;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
-using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop;
 using HB.RabbitMQ.ServiceModel.Tests;
 using NSubstitute;
 using Xunit;

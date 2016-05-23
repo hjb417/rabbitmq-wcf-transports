@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.ServiceModel;
@@ -32,8 +31,8 @@ using HB.RabbitMQ.ServiceModel.Hosting.ServiceModel;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop;
 using HB.RabbitMQ.ServiceModel.Threading.Tasks.Schedulers;
 using Microsoft.Web.Administration;
-using ListenerAdapter = HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter.ListenerAdapter;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
+using ListenerAdapter = HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter.ListenerAdapter;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {

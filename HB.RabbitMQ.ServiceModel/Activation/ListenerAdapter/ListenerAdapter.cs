@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;

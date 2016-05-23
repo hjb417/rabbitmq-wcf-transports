@@ -5,7 +5,6 @@ using System.ServiceModel.Channels;
 using System.Threading;
 using Contracts;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
-using RabbitMQ.Client;
 
 namespace ConsoleServer
 {

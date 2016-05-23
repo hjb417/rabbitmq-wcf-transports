@@ -54,7 +54,6 @@
     <Compile Include="TaskQueue\HostedRabbitMQTaskQueueTransportConfiguration.cs" />
     <Compile Include="TaskQueue\WasInterop\IWasInteropService.cs" />
     <Compile Include="TaskQueue\WasInterop\IWasInteropServiceCallback.cs" />
-    <Compile Include="TaskQueue\ListenerChannelManager.cs" />
     <Compile Include="TaskQueue\ListenerChannelSetup.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueAppDomainProtocolHandler.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueProcessProtocolHandler.cs" />

@@ -19,13 +19,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-using System;
 using System.Diagnostics;
 using System.ServiceModel;
 
 namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
 {
-    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false)]
+    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false, MaxItemsInObjectGraph = int.MaxValue)]
     internal sealed class WasInteropServiceCallback : IWasInteropServiceCallback
     {
         private readonly int _listenerchannelId;

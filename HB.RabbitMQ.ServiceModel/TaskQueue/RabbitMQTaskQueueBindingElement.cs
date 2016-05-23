@@ -24,7 +24,6 @@ using System.Configuration;
 using System.Reflection;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Configuration;
-using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {

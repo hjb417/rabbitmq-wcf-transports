@@ -27,7 +27,6 @@ using System.Threading;
 using HB.RabbitMQ.Activation.Configuration;
 using HB.RabbitMQ.Activation.Runtime.InteropServices;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Activation;
-using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.Activation
 {
