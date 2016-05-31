@@ -36,10 +36,10 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
     public sealed class RabbitMQTaskQueueAppDomainProtocolHandler : AppDomainProtocolHandler
     {
         private DuplexChannelFactory<IWasInteropService> _channelFactory;
-        private WasInteropServiceCallback _callback;
         private IListenerChannelCallback _listenerChannelCallback;
         private IWasInteropService _wasInteropSvc;
         private static readonly bool _autoStartServices;
+        private readonly Guid _appDomainId = Guid.NewGuid();
 
         private static event EventHandler<EventArgs> MessageReceived;
 
@@ -77,17 +77,16 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
             _listenerChannelCallback = listenerChannelCallback;
             var setup = listenerChannelCallback.GetBlobAsListenerChannelSetup();
 
-            _callback = new WasInteropServiceCallback();
-            _channelFactory = new DuplexChannelFactory<IWasInteropService>(new InstanceContext(_callback), BindingFactory.Create(setup.MessagePublicationNotificationServiceUri), new EndpointAddress(setup.MessagePublicationNotificationServiceUri));
+            var callback = new WasInteropServiceCallback(_appDomainId);
+            _channelFactory = new DuplexChannelFactory<IWasInteropService>(new InstanceContext(callback), BindingFactory.Create(setup.MessagePublicationNotificationServiceUri), new EndpointAddress(setup.MessagePublicationNotificationServiceUri));
 
             _wasInteropSvc = _channelFactory.CreateChannel();
-            _callback.Service = _wasInteropSvc;
+            callback.Service = _wasInteropSvc;
 
-            _wasInteropSvc.Register(listenerChannelId, _callback.Id, setup.ApplicationPath);
-
+            _wasInteropSvc.Register(listenerChannelId, _appDomainId, setup.ApplicationPath);
             if (_autoStartServices)
             {
-                AutoStartServices(setup.ApplicationPath, _callback);
+                AutoStartServices(setup.ApplicationPath, callback);
             }
 
             listenerChannelCallback.ReportStarted();
@@ -126,7 +125,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
             MessageReceived -= OnMessageReceived;
             try
             {
-                _wasInteropSvc.Unregister(_callback.Id);
+                _wasInteropSvc.Unregister(_appDomainId, $"StopListenerChannel invoked on listener channel id [{listenerChannelId}].");
             }
             catch (InvalidOperationException e) when (((ICommunicationObject)_wasInteropSvc).State != CommunicationState.Opened)
             {

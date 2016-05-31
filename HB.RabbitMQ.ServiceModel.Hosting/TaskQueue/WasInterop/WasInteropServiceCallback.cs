@@ -28,9 +28,9 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
     [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false, MaxItemsInObjectGraph = int.MaxValue)]
     internal sealed class WasInteropServiceCallback : IWasInteropServiceCallback
     {
-        public WasInteropServiceCallback()
+        public WasInteropServiceCallback(Guid id)
         {
-            Id = Guid.NewGuid();
+            Id = id;
         }
 
         public Guid Id { get; }

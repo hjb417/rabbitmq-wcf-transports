@@ -31,7 +31,7 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
         void Register(int listenerChannelId, Guid appDomainProcotolHandlerId, string applicationPath);
 
         [OperationContract(IsOneWay = true, IsTerminating = true, IsInitiating = false)]
-        void Unregister(Guid appDomainProcotolHandlerId);
+        void Unregister(Guid appDomainProcotolHandlerId, string reason);
 
         [OperationContract(IsOneWay = true, IsInitiating = false)]
         void ServiceActivated(Guid appDomainProcotolHandlerId, string virtualPath);

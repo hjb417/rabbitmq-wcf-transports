@@ -94,9 +94,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
             client?.AddActivatedService(virtualPath);
         }
 
-        public void Unregister(Guid appDomainProcotolHandlerId)
+        public void Unregister(Guid appDomainProcotolHandlerId, string reason)
         {
-            TraceInformation($"Unregister({nameof(appDomainProcotolHandlerId)}={appDomainProcotolHandlerId})", GetType());
+            TraceInformation($"Unregister({nameof(appDomainProcotolHandlerId)}={appDomainProcotolHandlerId}, {nameof(reason)}='{reason}')", GetType());
             Client client;
             if (_appDomainHandlers.TryRemove(appDomainProcotolHandlerId, out client))
             {

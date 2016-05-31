@@ -61,19 +61,24 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
             public void EnsureServiceAvailable(string servicePath)
             {
-                if (!_activatedServices.ContainsKey(servicePath) && !_missingServices.ContainsKey(servicePath))
+                if(_activatedServices.ContainsKey(servicePath))
                 {
-                    TraceInformation($"Activating service [{servicePath}].", GetType());
-                    try
-                    {
-                        _callback.EnsureServiceAvailable(servicePath);
-                        AddActivatedService(servicePath);
-                    }
-                    catch(Exception e) when ((e is ObjectDisposedException) || (e is CommunicationException))
-                    {
-                        TraceWarning($"Failed to ensure service is available for the listener channel [{Id}-{ListenerChannelId}|{ApplicationPath}] created on {CreationTime}. {e}", GetType());
-                        _msgPubSvc.Unregister(Id);
-                    }
+                    return;
+                }
+                if (_missingServices.ContainsKey(servicePath))
+                {
+                    return;
+                }
+                TraceInformation($"Activating service [{servicePath}].", GetType());
+                try
+                {
+                    _callback.EnsureServiceAvailable(servicePath);
+                    AddActivatedService(servicePath);
+                }
+                catch (Exception e) when ((e is ObjectDisposedException) || (e is CommunicationException))
+                {
+                    TraceWarning($"Failed to ensure service is available for the listener channel [{Id}-{ListenerChannelId}|{ApplicationPath}] created on {CreationTime}. {e}", GetType());
+                    _msgPubSvc.Unregister(Id, e.Message);
                 }
             }
 
@@ -94,7 +99,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 catch (Exception e) when ((e is ObjectDisposedException) || (e is CommunicationException))
                 {
                     TraceWarning($"Failed to perform keep-alive for the client [{Id}-{ListenerChannelId}|{ApplicationPath}] that registered on {CreationTime}. {e}", GetType());
-                    _msgPubSvc.Unregister(Id);
+                    _msgPubSvc.Unregister(Id, e.Message);
                 }
             }
 
