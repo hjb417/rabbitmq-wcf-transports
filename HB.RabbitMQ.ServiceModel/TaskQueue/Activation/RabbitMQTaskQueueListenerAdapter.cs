@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Principal;
 using System.ServiceModel;
@@ -40,7 +41,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
     {
         private const string ListenerAdapterPath = "system.applicationHost/listenerAdapters";
 
-
         private readonly LimitedConcurrencyLevelTaskScheduler _taskScheduler = new LimitedConcurrencyLevelTaskScheduler(1);
         private volatile bool _isDisposed;
         private readonly Dictionary<string, ApplicationInfo> _apps = new Dictionary<string, ApplicationInfo>();
@@ -58,7 +58,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
         internal RabbitMQTaskQueueListenerAdapter(Func<IListenerAdapter> listenerAdapterFactory, Func<IRabbitMQQueueMonitor> queueMionitorFactory)
         {
-            //_messagePublicationNotificationServiceUri = new Uri($"net.tcp://localhost:41781/RabbitMQTaskQueueListenerAdapter_{Guid.NewGuid():N}");
+            using (var proc = Process.GetCurrentProcess())
+            {
+                if (proc.SessionId > 0)
+                {
+                    _messagePublicationNotificationServiceUri = new Uri($"net.tcp://localhost:41781/RabbitMQTaskQueueListenerAdapter_{Guid.NewGuid():N}");
+                }
+            }
             _queueMon = queueMionitorFactory();
             _queueMon.MessagePublished += QueueMonitor_MessagePublished;
 
@@ -247,7 +253,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 {
                     action();
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     TraceError(e.ToString(), GetType());
                     throw;
