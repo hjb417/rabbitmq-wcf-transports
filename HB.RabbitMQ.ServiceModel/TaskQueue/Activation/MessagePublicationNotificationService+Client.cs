@@ -21,33 +21,86 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Concurrent;
+using System.ServiceModel;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
     partial class MessagePublicationNotificationService
     {
-        private sealed class Client
+        private sealed class Client : IDisposable
         {
             private readonly ConcurrentDictionary<string, string> _activatedServices = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            private readonly ConcurrentDictionary<string, string> _missingServices = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            private readonly IWasInteropServiceCallback _callback;
+            private readonly MessagePublicationNotificationService _msgPubSvc;
 
-            public Client(IWasInteropServiceCallback callback, string applicationPath)
+            public Client(MessagePublicationNotificationService msgPubService, IWasInteropServiceCallback callback, string applicationPath, int listenerChannelId, Guid id)
             {
-                Callback = callback;
+                CreationTime = DateTimeOffset.Now;
+                _msgPubSvc = msgPubService;
+                _callback = callback;
                 ApplicationPath = applicationPath;
+                ListenerChannelId = listenerChannelId;
+                Id = id;
             }
 
-            public IWasInteropServiceCallback Callback { get; }
+            public int ListenerChannelId { get; }
+            public Guid Id { get; }
+            public DateTimeOffset CreationTime { get; }
             public string ApplicationPath { get; }
-
-            public bool IsServiceActivated(string servicePath)
-            {
-                return _activatedServices.ContainsKey(servicePath);
-            }
 
             public void AddActivatedService(string servicePath)
             {
-                _activatedServices.TryAdd(servicePath, null);
+                if (_activatedServices.TryAdd(servicePath, null))
+                {
+                    TraceInformation($"Activated service [{servicePath}].", GetType());
+                }
+            }
+
+            public void EnsureServiceAvailable(string servicePath)
+            {
+                if (!_activatedServices.ContainsKey(servicePath) && !_missingServices.ContainsKey(servicePath))
+                {
+                    TraceInformation($"Activating service [{servicePath}].", GetType());
+                    try
+                    {
+                        _callback.EnsureServiceAvailable(servicePath);
+                        AddActivatedService(servicePath);
+                    }
+                    catch(Exception e) when ((e is ObjectDisposedException) || (e is CommunicationException))
+                    {
+                        TraceWarning($"Failed to ensure service is available for the listener channel [{Id}-{ListenerChannelId}|{ApplicationPath}] created on {CreationTime}. {e}", GetType());
+                        _msgPubSvc.Unregister(Id);
+                    }
+                }
+            }
+
+            public void AddMissingService(string servicePath)
+            {
+                if (_missingServices.TryAdd(servicePath, null))
+                {
+                    TraceInformation($"Added missing service [{servicePath}].", GetType());
+                }
+            }
+
+            public void KeepAlive()
+            {
+                try
+                {
+                    _callback.KeepAlive();
+                }
+                catch (Exception e) when ((e is ObjectDisposedException) || (e is CommunicationException))
+                {
+                    TraceWarning($"Failed to perform keep-alive for the client [{Id}-{ListenerChannelId}|{ApplicationPath}] that registered on {CreationTime}. {e}", GetType());
+                    _msgPubSvc.Unregister(Id);
+                }
+            }
+
+            public void Dispose()
+            {
+                ((ICommunicationObject)_callback).Dispose();
             }
         }
     }

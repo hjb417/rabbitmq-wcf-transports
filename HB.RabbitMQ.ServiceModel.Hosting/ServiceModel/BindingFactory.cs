@@ -20,34 +20,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Net.Security;
-using System.ServiceModel;
 using System.ServiceModel.Channels;
 
 namespace HB.RabbitMQ.ServiceModel.Hosting.ServiceModel
 {
-    public static class NetNamedPipeBindingFactory
+    public static partial class BindingFactory
     {
-        public static Binding Create()
+        public static Binding Create(Uri uri)
         {
-            var binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None);
-            binding.CloseTimeout = TimeSpan.FromSeconds(5);
-            binding.OpenTimeout = TimeSpan.FromSeconds(5);
-            binding.ReceiveTimeout = TimeSpan.MaxValue;
-            binding.SendTimeout = TimeSpan.MaxValue;
-
-            binding.TransactionFlow = false;
-            binding.MaxConnections = short.MaxValue;
-            binding.MaxReceivedMessageSize = int.MaxValue;
-            binding.MaxBufferPoolSize = 0;
-            binding.Security.Transport.ProtectionLevel = ProtectionLevel.None;
-
-            binding.ReaderQuotas.MaxDepth = int.MaxValue;
-            binding.ReaderQuotas.MaxArrayLength = int.MaxValue;
-            binding.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
-            binding.ReaderQuotas.MaxNameTableCharCount = int.MaxValue;
-            binding.ReaderQuotas.MaxStringContentLength = int.MaxValue;
-            return binding;
+            if(uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+            if(Uri.UriSchemeHttp.Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                return BasicHttpBindingFactory.Create();
+            }
+            if(Uri.UriSchemeNetPipe.Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                return NetNamedPipeBindingFactory.Create();
+            }
+            if (Uri.UriSchemeNetTcp.Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                return NetTcpBindingFactory.Create();
+            }
+            throw new NotSupportedException($"The scheme {uri.Scheme} is not supported.");
         }
     }
 }

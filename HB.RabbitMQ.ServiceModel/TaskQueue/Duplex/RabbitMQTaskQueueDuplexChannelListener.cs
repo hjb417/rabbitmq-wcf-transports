@@ -49,9 +49,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
-            var listenUri = new RabbitMQTaskQueueUri(Context.ListenUriBaseAddress.ToString());
-            var connFactory = Binding.CreateConnectionFactory(listenUri.Host, listenUri.Port);
-            _reader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, listenUri.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+            var connFactory = Binding.CreateConnectionFactory(_listenUri.Host, _listenUri.Port);
+            _reader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, _listenUri.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
             _writer = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
         }
 

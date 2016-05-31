@@ -20,29 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB.RabbitMQ.ServiceModel.Diagnostics
+namespace HB
 {
-    public static class TraceHelper
+    public static class LazyExtensionMethods
     {
-        [Conditional("TRACE")]
-        public static void TraceInformation(string message, Type type, [CallerMemberName] string memberName = null)
+        public static T GetValueIfCreatedOrDefault<T>(this Lazy<T> lazy)
         {
-            Trace.TraceInformation($"{type}.{memberName}: {message}");
-        }
-
-        [Conditional("TRACE")]
-        public static void TraceWarning(string message, Type type, [CallerMemberName] string memberName = null)
-        {
-            Trace.TraceWarning($"{type}.{memberName}: {message}");
-        }
-
-        [Conditional("TRACE")]
-        public static void TraceError(string message, Type type, [CallerMemberName] string memberName = null)
-        {
-            Trace.TraceError($"{type}.{memberName}: {message}");
+            return lazy.IsValueCreated ? lazy.Value : default(T);
         }
     }
 }

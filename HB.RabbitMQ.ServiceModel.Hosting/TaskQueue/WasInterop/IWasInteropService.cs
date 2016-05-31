@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
 using System.ServiceModel;
 
 namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
@@ -27,12 +28,15 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
     public interface IWasInteropService
     {
         [OperationContract(IsInitiating = true)]
-        void Register(int listenerChannelId, string applicationPath);
+        void Register(int listenerChannelId, Guid appDomainProcotolHandlerId, string applicationPath);
 
         [OperationContract(IsOneWay = true, IsTerminating = true, IsInitiating = false)]
-        void Unregister(int listenerChannelId);
+        void Unregister(Guid appDomainProcotolHandlerId);
 
         [OperationContract(IsOneWay = true, IsInitiating = false)]
-        void ServiceActivated(int listenerChannelId, string virtualPath);
+        void ServiceActivated(Guid appDomainProcotolHandlerId, string virtualPath);
+
+        [OperationContract(IsOneWay = true, IsInitiating = false)]
+        void ServiceNotFound(Guid appDomainProcotolHandlerId, string virtualPath);
     }
 }

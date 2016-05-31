@@ -23,6 +23,7 @@ using System;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
@@ -31,7 +32,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         private sealed class ApplicationInfo
         {
             private static int _nextListenerChannelId;
-            private bool _canOpenNewListenerChannelInstance = true;
+            private bool _canOpenNewListenerChannelInstance;
             private bool _sysCanOpenNewListenerChannelInstance;
             private ApplicationRequestsBlockedStates _requestsBlockedState;
 
@@ -48,7 +49,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 ListenerChannelSetup = new ListenerChannelSetup(applicationKey, applicationPath, messagePublicationNotificationServiceUri);
                 ListenerChannelId = new Lazy<int>(() => Interlocked.Increment(ref _nextListenerChannelId));
                 SiteId = siteId;
-                UpdateCanOpenNewListenerChannelInstance();
+                CanOpenNewListenerChannelInstance = true;
             }
 
             public string ApplicationKey { get; }
@@ -90,12 +91,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 {
                     _canOpenNewListenerChannelInstance = value;
                     UpdateCanOpenNewListenerChannelInstance();
+                    TraceInformation($"{nameof(CanOpenNewListenerChannelInstance)} is {CanOpenNewListenerChannelInstance} for the application [{ApplicationPoolName}|{ApplicationPath}].", GetType());
                 }
             }
 
             private void UpdateCanOpenNewListenerChannelInstance()
             {
-                SystemCanOpenNewListenerChannelInstance = _canOpenNewListenerChannelInstance
+                SystemCanOpenNewListenerChannelInstance =
+                    _canOpenNewListenerChannelInstance
                     &&
                     (RequestsBlockedState == ApplicationRequestsBlockedStates.Processsed)
                     &&
@@ -104,6 +107,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
             public void UpdateApplicationPool(string applicationPoolName, ApplicationPoolStates applicationPoolState)
             {
+                //TODO: should I assign a new listener channel id?
                 ApplicationPoolName = applicationPoolName;
                 ApplicationPoolState = applicationPoolState;
                 UpdateCanOpenNewListenerChannelInstance();

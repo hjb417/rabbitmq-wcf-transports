@@ -20,29 +20,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
-namespace HB.RabbitMQ.ServiceModel.Diagnostics
+namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    public static class TraceHelper
+    partial class RabbitMQTaskQueueListenerAdapter
     {
-        [Conditional("TRACE")]
-        public static void TraceInformation(string message, Type type, [CallerMemberName] string memberName = null)
+        [Serializable, Flags]
+        private enum NewListenerChannelInstanceConstraints
         {
-            Trace.TraceInformation($"{type}.{memberName}: {message}");
-        }
-
-        [Conditional("TRACE")]
-        public static void TraceWarning(string message, Type type, [CallerMemberName] string memberName = null)
-        {
-            Trace.TraceWarning($"{type}.{memberName}: {message}");
-        }
-
-        [Conditional("TRACE")]
-        public static void TraceError(string message, Type type, [CallerMemberName] string memberName = null)
-        {
-            Trace.TraceError($"{type}.{memberName}: {message}");
+            None,
+            HasPendingMessages = 0x1,
         }
     }
 }

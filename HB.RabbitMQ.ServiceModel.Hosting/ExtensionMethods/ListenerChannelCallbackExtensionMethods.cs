@@ -22,7 +22,7 @@ THE SOFTWARE.
 using System.Web.Hosting;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 
-namespace HB.RabbitMQ.ServiceModel.Hosting
+namespace HB
 {
     internal static class ListenerChannelCallbackExtensionMethods
     {

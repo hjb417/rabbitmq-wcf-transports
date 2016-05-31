@@ -77,6 +77,7 @@
     <Compile Include="Activation\ListenerAdapter\WindowsProcessActivationServiceDisconnectedEventArgs.cs" />
     <Compile Include="Diagnostics\TraceHelper.cs" />
     <Compile Include="ExtensionMethods\ConcurrentDictionaryExtensionMethods.cs" />
+    <Compile Include="ExtensionMethods\LazyExtensionMethods.cs" />
     <Compile Include="PredeclaredExchangeNames.cs" />
     <Compile Include="TaskQueue\Activation\IRabbitMQQueueMonitor.cs" />
     <Compile Include="TaskQueue\Activation\MessagePublicationNotificationService+Client.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="TaskQueue\Activation\RabbitMQQueueMonitor.cs" />
     <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+ApplicationInfo.cs" />
     <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+ApplicationPoolInfo.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+NewListenerChannelInstanceConstraints.cs" />
     <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter.cs" />
     <Compile Include="DequeueResult.cs" />
     <Compile Include="CloseReasons.cs" />

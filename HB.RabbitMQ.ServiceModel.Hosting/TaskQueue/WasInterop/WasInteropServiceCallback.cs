@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
 using System.Diagnostics;
 using System.ServiceModel;
 
@@ -27,21 +28,35 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop
     [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false, MaxItemsInObjectGraph = int.MaxValue)]
     internal sealed class WasInteropServiceCallback : IWasInteropServiceCallback
     {
-        private readonly int _listenerchannelId;
-
-        public WasInteropServiceCallback(int listenerchannelId)
+        public WasInteropServiceCallback()
         {
-            _listenerchannelId = listenerchannelId;
+            Id = Guid.NewGuid();
         }
 
+        public Guid Id { get; }
         public IWasInteropService Service { get; set; }
 
         public void EnsureServiceAvailable(string virtualPath)
         {
-            Trace.TraceInformation($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: Activating service [{virtualPath}] for listener channel id [{_listenerchannelId}].");
-            ServiceHostingEnvironment.EnsureServiceAvailable(virtualPath);
-            Trace.TraceInformation($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: Activated service [{virtualPath}] for listener channel id [{_listenerchannelId}].");
-            Service.ServiceActivated(_listenerchannelId, virtualPath);
+            Trace.TraceInformation($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: Activating service [{virtualPath}] for listener channel id [{Id}].");
+            try
+            {
+                ServiceHostingEnvironment.EnsureServiceAvailable(virtualPath);
+            }
+            catch (EndpointNotFoundException)
+            {
+                try
+                {
+                    Service.ServiceNotFound(Id, virtualPath);
+                }
+                catch (InvalidOperationException e) when (((ICommunicationObject)Service).State != CommunicationState.Opened)
+                {
+                    Trace.TraceWarning($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: {e}.");
+                }
+                return;
+            }
+            Trace.TraceInformation($"{nameof(WasInteropServiceCallback)}.{nameof(EnsureServiceAvailable)}: Activated service [{virtualPath}] for listener channel id [{Id}].");
+            Service.ServiceActivated(Id, virtualPath);
         }
 
         public void KeepAlive()

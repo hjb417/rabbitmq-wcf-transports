@@ -20,12 +20,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
 {
-    [Serializable]
+    [DataContract(IsReference = true)]
     public sealed class ListenerChannelSetup
     {
         public ListenerChannelSetup(string applicationId, string applicationPath, Uri messagePublicationNotificationServiceUri)
@@ -35,25 +39,30 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
             MessagePublicationNotificationServiceUri = messagePublicationNotificationServiceUri;
         }
 
-        public string ApplicationId { get; }
-        public string ApplicationPath { get; }
-        public Uri MessagePublicationNotificationServiceUri { get; }
+        [DataMember]
+        public string ApplicationId { get; private set; }
+
+        [DataMember]
+        public string ApplicationPath { get; private set; }
+
+        [DataMember]
+        public Uri MessagePublicationNotificationServiceUri { get; private set; }
 
         public static ListenerChannelSetup FromBytes(byte[] buffer)
         {
-            var formatter = new BinaryFormatter();
+            var serializer = new DataContractSerializer(typeof(ListenerChannelSetup));
             using (var input = new MemoryStream(buffer, false))
             {
-                return (ListenerChannelSetup)formatter.Deserialize(input);
+                return (ListenerChannelSetup)serializer.ReadObject(input);
             }
         }
 
         public byte[] ToBytes()
         {
-            var formatter = new BinaryFormatter();
+            var serializer = new DataContractSerializer(typeof(ListenerChannelSetup));
             using (var buffer = new MemoryStream())
             {
-                formatter.Serialize(buffer, this);
+                serializer.WriteObject(buffer, this);
                 return buffer.ToArray();
             }
         }

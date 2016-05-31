@@ -25,5 +25,6 @@ namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue
     {
         public const string Scheme = "hb.rmqtq";
         public const string DefaultHost = "localhost";
+        public const int DefaultPort = 5672;
     }
 }

@@ -24,6 +24,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.ServiceModel;
 using System.Threading;
+using System.Threading.Tasks;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.WasInterop;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
@@ -32,7 +33,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false, IncludeExceptionDetailInFaults = true, MaxItemsInObjectGraph = int.MaxValue)]
     internal sealed partial class MessagePublicationNotificationService : IWasInteropService, IDisposable
     {
-        private ConcurrentDictionary<int, Client> _appDomainHandlers = new ConcurrentDictionary<int, Client>();
+        private ConcurrentDictionary<Guid, Client> _appDomainHandlers = new ConcurrentDictionary<Guid, Client>();
         private readonly Timer _keepAliveTimer;
         private IRabbitMQQueueMonitor _queueMon;
         private readonly Func<IWasInteropServiceCallback> _getCallbackFunc;
@@ -47,8 +48,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
             _getCallbackFunc = getCallbackFunc;
             _queueMon = queueMonitor;
             _queueMon.MessagePublished += QueueMonitor_MessagePublished;
-            var keepAliveInterval = TimeSpan.FromMinutes(5);
-            _keepAliveTimer = new Timer(state => FireKeepAlive(), null, keepAliveInterval, keepAliveInterval);
+            var keepAliveInterval = TimeSpan.FromMinutes(1);
+            _keepAliveTimer = new Timer(state => FireKeepAlive(), null, TimeSpan.Zero, keepAliveInterval);
         }
 
         ~MessagePublicationNotificationService()
@@ -58,54 +59,56 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
         public void EnsureServiceAvailable(int listenerChannelId, string virtualPath)
         {
-            var client = _appDomainHandlers.GetValueOrDefault(listenerChannelId);
-            client?.Callback.EnsureServiceAvailable(virtualPath);
+            var clients = _appDomainHandlers.Values.Where(c => c.ListenerChannelId == listenerChannelId);
+            Parallel.ForEach(clients, client => client.EnsureServiceAvailable(virtualPath));
         }
 
         private void FireKeepAlive()
         {
-            foreach (var client in _appDomainHandlers.Values)
-            {
-                client.Callback.KeepAlive();
-            }
+            Parallel.ForEach(_appDomainHandlers.Values, client => client.KeepAlive());
         }
 
-        public void Register(int listenerChannelId, string applicationPath)
+        public void Register(int listenerChannelId, Guid appDomainProcotolHandlerId, string applicationPath)
         {
-            TraceInformation($"Register({nameof(listenerChannelId)}={listenerChannelId}, {nameof(applicationPath)}={applicationPath})", GetType());
+            TraceInformation($"Register({nameof(listenerChannelId)}={listenerChannelId}, {nameof(appDomainProcotolHandlerId)}={appDomainProcotolHandlerId}, {nameof(applicationPath)}={applicationPath})", GetType());
             var callback = _getCallbackFunc();
-            var client = new Client(callback, applicationPath);
-            _appDomainHandlers.TryAdd(listenerChannelId, client);
-
+            var client = new Client(this, callback, applicationPath, listenerChannelId, appDomainProcotolHandlerId);
+            _appDomainHandlers.Add(appDomainProcotolHandlerId, client);
             foreach (var queueName in _queueMon.GetQueuesWithPendingMessages(applicationPath))
             {
-                if (!client.IsServiceActivated(queueName))
-                {
-                    callback.EnsureServiceAvailable(queueName);
-                }
+                client.EnsureServiceAvailable(queueName);
             }
         }
 
-        public void ServiceActivated(int listenerChannelId, string virtualPath)
+        public void ServiceNotFound(Guid appDomainProcotolHandlerId, string virtualPath)
         {
-            TraceInformation($"ServiceActivated({nameof(listenerChannelId)}={listenerChannelId}, {nameof(virtualPath)}={virtualPath})", GetType());
-            var client = _appDomainHandlers.GetValueOrDefault(listenerChannelId);
+            TraceInformation($"ServiceNotFound({nameof(appDomainProcotolHandlerId)}={appDomainProcotolHandlerId}, {nameof(virtualPath)}={virtualPath})", GetType());
+            var client = _appDomainHandlers.GetValueOrDefault(appDomainProcotolHandlerId);
+            client?.AddMissingService(virtualPath);
+        }
+
+        public void ServiceActivated(Guid appDomainProcotolHandlerId, string virtualPath)
+        {
+            TraceInformation($"ServiceActivated({nameof(appDomainProcotolHandlerId)}={appDomainProcotolHandlerId}, {nameof(virtualPath)}={virtualPath})", GetType());
+            var client = _appDomainHandlers.GetValueOrDefault(appDomainProcotolHandlerId);
             client?.AddActivatedService(virtualPath);
         }
 
-        public void Unregister(int listenerChannelId)
+        public void Unregister(Guid appDomainProcotolHandlerId)
         {
-            TraceInformation($"Unregister({nameof(listenerChannelId)}={listenerChannelId})", GetType());
-            _appDomainHandlers.Remove(listenerChannelId);
+            TraceInformation($"Unregister({nameof(appDomainProcotolHandlerId)}={appDomainProcotolHandlerId})", GetType());
+            Client client;
+            if (_appDomainHandlers.TryRemove(appDomainProcotolHandlerId, out client))
+            {
+                client.Dispose();
+                TraceInformation($"Unregistered {nameof(appDomainProcotolHandlerId)} [{appDomainProcotolHandlerId}] for the application path [{client.ApplicationPath}] that was registered on [{client.CreationTime}].", GetType());
+            }
         }
 
         private void QueueMonitor_MessagePublished(object sender, MessagePublishedEventArgs e)
         {
             var clients = _appDomainHandlers.Values.Where(c => string.Equals(c.ApplicationPath, e.ApplicationPath, StringComparison.OrdinalIgnoreCase));
-            foreach (var client in clients)
-            {
-                client.Callback.EnsureServiceAvailable(e.QueueName);
-            }
+            Parallel.ForEach(clients, client => client.EnsureServiceAvailable(e.QueueName));
         }
 
         private void Dispose(bool disposing)
@@ -114,6 +117,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
             {
                 _queueMon.MessagePublished -= QueueMonitor_MessagePublished;
                 _keepAliveTimer.Dispose();
+                Parallel.ForEach(_appDomainHandlers.Values, client => client.Dispose());
             }
         }
 

@@ -19,30 +19,28 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using System.Configuration;
 
-namespace HB.RabbitMQ.ServiceModel.Diagnostics
+namespace HB.RabbitMQ.ServiceModel.Hosting.TaskQueue.Configuration
 {
-    public static class TraceHelper
+    public class BaseAddress : ConfigurationElement
     {
-        [Conditional("TRACE")]
-        public static void TraceInformation(string message, Type type, [CallerMemberName] string memberName = null)
+        public BaseAddress()
         {
-            Trace.TraceInformation($"{type}.{memberName}: {message}");
         }
 
-        [Conditional("TRACE")]
-        public static void TraceWarning(string message, Type type, [CallerMemberName] string memberName = null)
+        [ConfigurationProperty(BaseAddressAttributes.Hostname, IsRequired = true, IsKey = true)]
+        public string Hostname
         {
-            Trace.TraceWarning($"{type}.{memberName}: {message}");
+            get { return (string)this[BaseAddressAttributes.Hostname]; }
+            set { this[BaseAddressAttributes.Hostname] = value; }
         }
 
-        [Conditional("TRACE")]
-        public static void TraceError(string message, Type type, [CallerMemberName] string memberName = null)
+        [ConfigurationProperty(BaseAddressAttributes.Port, DefaultValue = Constants.DefaultPort, IsKey = true)]
+        public int Port
         {
-            Trace.TraceError($"{type}.{memberName}: {message}");
+            get { return (int)this[BaseAddressAttributes.Port]; }
+            set { this[BaseAddressAttributes.Port] = value; }
         }
     }
 }

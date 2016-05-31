@@ -47,11 +47,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExtensionMethods\CommunicationObjectExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\ListenerChannelCallbackExtensionMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceModel\NetNamedPipeBindingFactory.cs" />
+    <Compile Include="ServiceModel\BindingFactory+BasicHttpBindingFactory.cs" />
+    <Compile Include="ServiceModel\BindingFactory+NetTcpBindingFactory.cs" />
+    <Compile Include="ServiceModel\BindingFactory.cs" />
+    <Compile Include="ServiceModel\BindingFactory+NetNamedPipeBindingFactory.cs" />
+    <Compile Include="TaskQueue\Configuration\BaseAddress.cs" />
+    <Compile Include="TaskQueue\Configuration\BaseAddressAttributes.cs" />
+    <Compile Include="TaskQueue\Configuration\BaseAddressCollection.cs" />
+    <Compile Include="TaskQueue\Configuration\RabbitMQTaskQueueWasConfigurationSection.cs" />
+    <Compile Include="TaskQueue\Configuration\RabbitMQTaskQueueWasConfigurationSectionAttributes.cs" />
     <Compile Include="TaskQueue\Constants.cs" />
-    <Compile Include="TaskQueue\HostedRabbitMQTaskQueueTransportConfiguration.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueHostedTransportConfiguration.cs" />
     <Compile Include="TaskQueue\WasInterop\IWasInteropService.cs" />
     <Compile Include="TaskQueue\WasInterop\IWasInteropServiceCallback.cs" />
     <Compile Include="TaskQueue\ListenerChannelSetup.cs" />

@@ -27,6 +27,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Web.Script.Serialization;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
@@ -44,25 +45,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         {
             _rabbitMqManagementUri = rabbitMqManagementUri;
             var refreshLock = new object();
-            _refreshTimer = new Timer(state =>
-            {
-                var lockTaken = false;
-                try
-                {
-                    Monitor.TryEnter(refreshLock, ref lockTaken);
-                    if (lockTaken)
-                    {
-                        Refresh();
-                    }
-                }
-                finally
-                {
-                    if (lockTaken)
-                    {
-                        Monitor.Exit(refreshLock);
-                    }
-                }
-            }, null, TimeSpan.Zero, pollInterval);
+            _refreshTimer = new Timer(RefreshTimerCallback, refreshLock, pollInterval, pollInterval);
+            RefreshTimerCallback(refreshLock);
         }
 
         ~RabbitMQQueueMonitor()
@@ -71,6 +55,33 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
         }
 
         public IEnumerable<string> QueueMessageCount { get { return _queueStats.Keys; } }
+
+        private void RefreshTimerCallback(object refreshLock)
+        {
+            var lockTaken = false;
+            try
+            {
+                Monitor.TryEnter(refreshLock, ref lockTaken);
+                if (lockTaken)
+                {
+                    try
+                    {
+                        Refresh();
+                    }
+                    catch(Exception e)
+                    {
+                        TraceError(e.ToString(), GetType());
+                    }
+                }
+            }
+            finally
+            {
+                if (lockTaken)
+                {
+                    Monitor.Exit(refreshLock);
+                }
+            }
+        }
 
         private WebClient CreateWebClient()
         {
@@ -87,22 +98,24 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
         private void Refresh()
         {
+            TraceInformation("Querying RabbitMQ Management service.", GetType());
             using (var client = CreateWebClient())
             {
                 var json = client.DownloadString("/api/queues");
                 var queues = _deserializer.Deserialize<Dictionary<string, object>[]>(json)
                     .Where(q => q.ContainsKey("message_stats"))
+                    .Where(q => q.ContainsKey("messages_ready"))
                     .Select(q => new
                     {
                         QueueName = (string)q["name"],
+                        MessagesReady = Convert.ToInt64(q["messages_ready"]),
                         MessageStats = (Dictionary<string, object>)q["message_stats"],
                     })
-                    .Where(q => q.MessageStats.ContainsKey("messages_ready"))
                     .Select(q => new
                     {
                         q.QueueName,
-                        PublishCount = Convert.ToInt64(q.MessageStats["publish"]),
-                        MessagesReady = Convert.ToInt64(q.MessageStats["messages_ready"]),
+                        PublishCount = Convert.ToInt64(q.MessageStats.GetValueOrDefault("publish") ?? 0),
+                        q.MessagesReady,
                     })
                     .ToArray();
                 var queuesToRemove = _queueStats.Keys.Except(queues.Select(q => q.QueueName)).ToArray();
@@ -113,10 +126,20 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 }
                 foreach (var queue in queues)
                 {
-                    var stats = _queueStats.GetOrAdd(queue.QueueName);
+                    var stats = _queueStats.GetValueOrDefault(queue.QueueName);
+                    bool publish = false;
+                    if (stats == null)
+                    {
+                        stats = new QueueStatistics();
+                        _queueStats.Add(queue.QueueName, stats);
+                        publish = (queue.PublishCount > 0);
+                    }
                     stats.MessagesReady = queue.MessagesReady;
-
                     if (stats.PublishCount != queue.PublishCount)
+                    {
+                        publish = true;
+                    }
+                    if (publish)
                     {
                         stats.UpdatePublishInfo(queue.PublishCount);
                         var args = new MessagePublishedEventArgs(queue.QueueName, GetApplicationPath(queue.QueueName));
@@ -154,6 +177,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
         protected virtual void OnMessagePublished(MessagePublishedEventArgs e)
         {
+            TraceInformation($"OnMessagePublished[{nameof(e.ApplicationPath)}={e.ApplicationPath}, {nameof(e.QueueName)}={e.QueueName}].", GetType());
             MessagePublished?.Invoke(this, e);
         }
 
