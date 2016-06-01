@@ -49,7 +49,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         internal protected IRabbitMQWriter QueueWriter { get; protected set; }
         protected MessageEncoderFactory MessageEncoderFactory { get { return _msgEncoderFactory; } }
         public EndpointAddress LocalAddress { get; }
-        
+
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
             MethodInvocationTrace.Write();
@@ -79,7 +79,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             MethodInvocationTrace.Write();
             ConcurrentOperationManager = new ConcurrentOperationManager(GetType().FullName);
             var connFactory = Binding.CreateConnectionFactory(LocalAddress.Uri.Host, LocalAddress.Uri.Port);
-            QueueWriter = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeout, ConcurrentOperationManager.Token, Binding.WriterOptions);
+            var writerSetup = new RabbitMQWriterSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                Options = Binding.WriterOptions,
+                Timeout = timeout,
+            };
+            QueueWriter = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)

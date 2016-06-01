@@ -30,22 +30,17 @@ namespace HB.RabbitMQ.ServiceModel
     internal sealed class RabbitMQReaderConnection : RabbitMQConnectionBase
     {
         private static readonly Process _proc = Process.GetCurrentProcess();
-        private readonly string _exchange;
-        private readonly string _queueName;
-        private readonly bool _isDurable;
-        private readonly TimeSpan? _queueTtl;
-        private readonly RabbitMQReaderOptions _options;
-        private readonly int? _maxPriority;
+        private readonly RabbitMQReaderSetup _setup;
 
-        public RabbitMQReaderConnection(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnDispose, TimeSpan? queueTimeToLive, RabbitMQReaderOptions options, int? maxPriority)
-            : base(connectionFactory, queueName, deleteQueueOnDispose)
+        private RabbitMQReaderConnection(RabbitMQReaderSetup setup)
+            : base(setup.ConnectionFactory, setup.QueueName, setup.DeleteQueueOnClose)
         {
-            _options = options;
-            _exchange = exchange;
-            _queueName = queueName;
-            _isDurable = isDurable;
-            _queueTtl = queueTimeToLive;
-            _maxPriority = maxPriority;
+            _setup = setup;
+        }
+
+        public static RabbitMQReaderConnection Create(RabbitMQReaderSetup setup, bool cloneSetup)
+        {
+            return new RabbitMQReaderConnection(cloneSetup ? setup.Clone() : setup);
         }
 
         protected override void InitializeModel(IModel model)
@@ -53,7 +48,7 @@ namespace HB.RabbitMQ.ServiceModel
             model.BasicQos(0, 1, false);
             model.ConfirmSelect();
             var args = new Dictionary<string, object>();
-            if (_options.IncludeProcessCommandLineInQueueArguments)
+            if (_setup.Options.IncludeProcessCommandLineInQueueArguments)
             {
                 args.Add(ReaderQueueArguments.CommandLine, Environment.CommandLine);
             }
@@ -69,9 +64,9 @@ namespace HB.RabbitMQ.ServiceModel
             args.Add(ReaderQueueArguments.Stacktrace, Environment.StackTrace);
 #endif
 
-            var autoDeleteQueue = !_isDurable;
-            var queueTtl = _queueTtl;
-            if(autoDeleteQueue && !queueTtl.HasValue)
+            var autoDeleteQueue = !_setup.IsDurable;
+            var queueTtl = _setup.QueueTimeToLive;
+            if (autoDeleteQueue && !queueTtl.HasValue)
             {
                 queueTtl = TimeSpan.FromMinutes(20);
             }
@@ -81,20 +76,27 @@ namespace HB.RabbitMQ.ServiceModel
             {
                 args.Add("x-expires", (int)queueTtl.Value.TotalMilliseconds);
             }
-            if(_maxPriority.HasValue)
+            if (_setup.MaxPriority.HasValue)
             {
-                args.Add("x-max-priority", _maxPriority.Value);
+                args.Add("x-max-priority", _setup.MaxPriority.Value);
             }
-            model.QueueDeclare(_queueName, true, false, autoDeleteQueue, args);
-            Debug.WriteLine("{0}-{1}: Declared queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _queueName);
-            model.QueueBind(_queueName, _exchange, _queueName);
-            Debug.WriteLine("{0}-{1}: Bound to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _queueName);
+            if (_setup.QueueArguments != null)
+            {
+                foreach (var extraOptions in _setup.QueueArguments)
+                {
+                    args.Add(extraOptions.Key, extraOptions.Value);
+                }
+            }
+            model.QueueDeclare(_setup.QueueName, true, false, autoDeleteQueue, args);
+            Debug.WriteLine("{0}-{1}: Declared queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _setup.QueueName);
+            model.QueueBind(_setup.QueueName, _setup.Exchange, _setup.QueueName);
+            Debug.WriteLine("{0}-{1}: Bound to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _setup.QueueName);
         }
 
         public BasicGetResult BasicGet(TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();
-            return PerformAction(model => model.BasicGet(_queueName, false), timeout, cancelToken);
+            return PerformAction(model => model.BasicGet(_setup.QueueName, false), timeout, cancelToken);
         }
 
         public IBasicProperties CreateBasicProperties(TimeSpan timeout, CancellationToken cancelToken)
@@ -111,12 +113,12 @@ namespace HB.RabbitMQ.ServiceModel
 
         public QueueDeclareOk QueueDeclarePassive(TimeSpan timeout, CancellationToken cancelToken)
         {
-            return PerformAction(model => model.QueueDeclarePassive(_queueName), timeout, cancelToken);
+            return PerformAction(model => model.QueueDeclarePassive(_setup.QueueName), timeout, cancelToken);
         }
 
         public uint MessageCount(TimeSpan timeout, CancellationToken cancelToken)
         {
-            return PerformAction(model => model.MessageCount(_queueName), timeout, cancelToken);
+            return PerformAction(model => model.MessageCount(_setup.QueueName), timeout, cancelToken);
         }
     }
 }

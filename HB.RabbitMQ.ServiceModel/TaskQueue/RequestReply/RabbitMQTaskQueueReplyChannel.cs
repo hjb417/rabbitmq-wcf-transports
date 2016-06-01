@@ -51,7 +51,22 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             base.OnOpen(timeoutTimer.RemainingTime);
             var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
             var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, url.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority);
+
+            var setup = new RabbitMQReaderSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = Binding.DeleteOnClose,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = Binding.MaxPriority,
+                Options = Binding.ReaderOptions,
+                QueueName = url.QueueName,
+                QueueTimeToLive = Binding.TimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
@@ -113,7 +128,15 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
                 try
                 {
                     var connFactory = Binding.CreateConnectionFactory(LocalAddress.Uri.Host, LocalAddress.Uri.Port);
-                    queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
+                    var setup = new RabbitMQWriterSetup
+                    {
+                        CancelToken = ConcurrentOperationManager.Token,
+                        ConnectionFactory = connFactory,
+                        Options = Binding.WriterOptions,
+                        Timeout = timeoutTimer.RemainingTime,
+                    };
+
+                    queueWriter = Binding.QueueReaderWriterFactory.CreateWriter(setup);
                     ulong deliveryTag;
                     var request = _queueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, out deliveryTag);
                     RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(request.Headers.To);

@@ -61,13 +61,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { base[BindingPropertyNames.MaxReceivedMessageSize] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.AutoCreateServerQueue, DefaultValue = DefaultValues.AutoCreateServerQueue)]
-        public bool AutoCreateServerQueue
-        {
-            get { return ((bool)base[BindingPropertyNames.AutoCreateServerQueue]); }
-            set { base[BindingPropertyNames.AutoCreateServerQueue] = value; }
-        }
-
         [ConfigurationProperty(BindingPropertyNames.QueueTimeToLive, DefaultValue = DefaultValues.QueueTimeToLive)]
         public TimeSpan? QueueTimeToLive
         {
@@ -194,7 +187,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.MaxBufferPoolSize = MaxBufferPoolSize;
             rb.QueueTimeToLive = QueueTimeToLive;
             rb.MessageConfirmationMode = MessageConfirmationMode;
-            rb.AutoCreateServerQueue = AutoCreateServerQueue;
             rb.Username = Username;
             rb.Password = Password;
             rb.VirtualHost = VirtualHost;

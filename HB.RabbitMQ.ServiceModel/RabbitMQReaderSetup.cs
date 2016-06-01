@@ -20,14 +20,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel
 {
-    internal interface IRabbitMQReaderWriterFactory
+    public sealed class RabbitMQReaderSetup : ICloneable
     {
-        IRabbitMQReader CreateReader(RabbitMQReaderSetup setup);
-        IRabbitMQWriter CreateWriter(RabbitMQWriterSetup setup);
+        public IConnectionFactory ConnectionFactory { get; set; }
+        public string Exchange { get; set; }
+        public string QueueName { get; set; }
+        public bool IsDurable { get; set; }
+        public bool DeleteQueueOnClose { get; set; }
+        public TimeSpan? QueueTimeToLive { get; set; }
+        public TimeSpan Timeout { get; set; }
+        public CancellationToken CancelToken { get; set; }
+        public RabbitMQReaderOptions Options { get; set; }
+        public int? MaxPriority { get; set; }
+        public Dictionary<string, object> QueueArguments { get; set; }
+
+        public RabbitMQReaderSetup Clone()
+        {
+            var clone = (RabbitMQReaderSetup)MemberwiseClone();
+            clone.Options = clone.Options?.Clone();
+            return clone;
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 }

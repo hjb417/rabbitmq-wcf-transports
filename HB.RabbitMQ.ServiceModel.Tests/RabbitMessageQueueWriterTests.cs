@@ -24,9 +24,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
 
-            using (var rdr = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
+            var setup = new RabbitMQWriterSetup
+            {
+                ConnectionFactory = connFactory,
+                Options = new RabbitMQWriterOptions(),
+            };
+            using (var rdr = new RabbitMQWriter(setup, false))
             {
                 rdr.EnsureOpen(TimeSpan.FromSeconds(90), CancellationToken.None);
                 model.Received().ConfirmSelect();
@@ -42,9 +48,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var msg = new MemoryStream(Guid.NewGuid().ToByteArray());
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
+            var setup = new RabbitMQWriterSetup
+            {
+                ConnectionFactory = connFactory,
+                Options = new RabbitMQWriterOptions(),
+            };
+            using (var writer = new RabbitMQWriter(setup, false))
             {
                 IBasicProperties props = null;
                 model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci =>
@@ -68,9 +80,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var ttl = TimeSpan.FromSeconds(5);
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
+            var setup = new RabbitMQWriterSetup
+            {
+                ConnectionFactory = connFactory,
+                Options = new RabbitMQWriterOptions(),
+            };
+            using (var writer = new RabbitMQWriter(setup, false))
             {
                 IBasicProperties props = null;
                 model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci =>
@@ -93,9 +111,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var msg = new MemoryStream(Guid.NewGuid().ToByteArray());
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
+            var setup = new RabbitMQWriterSetup
+            {
+                ConnectionFactory = connFactory,
+                Options = new RabbitMQWriterOptions(),
+            };
+            using (var writer = new RabbitMQWriter(setup, false))
             {
                 IBasicProperties props = null;
                 model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci =>
@@ -118,9 +142,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(ci => model.BasicAcks += Raise.EventWith(model, new BasicAckEventArgs()));
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
 
-            using (var writer = new RabbitMQWriter(connFactory, new RabbitMQWriterOptions()))
+            var setup = new RabbitMQWriterSetup
+            {
+                ConnectionFactory = connFactory,
+                Options = new RabbitMQWriterOptions(),
+            };
+            using (var writer = new RabbitMQWriter(setup, false))
             {
                 var exchange = Guid.NewGuid().ToString();
                 var queueName = Guid.NewGuid().ToString();

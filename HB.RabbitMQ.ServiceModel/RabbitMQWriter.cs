@@ -34,14 +34,14 @@ namespace HB.RabbitMQ.ServiceModel
         private readonly RabbitMQWriterConnection _conn;
         private readonly ConcurrentOperationManager _invocationTracker;
         private static readonly Process _proc = Process.GetCurrentProcess();
-        private readonly RabbitMQWriterOptions _options;
+        private readonly RabbitMQWriterSetup _setup;
 
-        public RabbitMQWriter(IConnectionFactory connectionFactory, RabbitMQWriterOptions options)
+        public RabbitMQWriter(RabbitMQWriterSetup setup, bool cloneSetup)
         {
+            _setup = cloneSetup ? setup.Clone() : setup;
             MethodInvocationTrace.Write();
             _invocationTracker = new ConcurrentOperationManager(GetType().FullName);
-            _conn = new RabbitMQWriterConnection(connectionFactory);
-            _options = options;
+            _conn = new RabbitMQWriterConnection(_setup.ConnectionFactory);
         }
 
         [ExcludeFromCodeCoverage]
@@ -80,7 +80,7 @@ namespace HB.RabbitMQ.ServiceModel
                 var msgProps = _conn.CreateBasicProperties(timeoutTimer.RemainingTime, opCancelToken.Token);
 
                 msgProps.Headers = new Dictionary<string, object>();
-                if (_options.IncludeProcessCommandLineInMessageHeaders)
+                if (_setup.Options.IncludeProcessCommandLineInMessageHeaders)
                 {
                     msgProps.Headers.Add(MessageHeaders.CommandLine, Environment.CommandLine);
                 }
@@ -98,9 +98,9 @@ namespace HB.RabbitMQ.ServiceModel
                 {
                     msgProps.Expiration = timetoLive.TotalMilliseconds.ToString("0");
                 }
-                if(_options.MessagePriority.HasValue)
+                if (_setup.Options.MessagePriority.HasValue)
                 {
-                    msgProps.Priority = (byte)_options.MessagePriority.Value;
+                    msgProps.Priority = (byte)_setup.Options.MessagePriority.Value;
                 }
                 _conn.BasicPublish(exchange, queueName, msgProps, messageStream, timeoutTimer.RemainingTime, opCancelToken.Token);
             }

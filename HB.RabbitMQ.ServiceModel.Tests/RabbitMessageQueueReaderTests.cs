@@ -15,7 +15,17 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         public RabbitMessageQueueReaderTests(ITestOutputHelper outputHelper)
             : base(outputHelper)
         {
-            Reader = new RabbitMQReader(TestConnectionFactory.Instance, "amq.direct", Guid.NewGuid().ToString(), false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null);
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = TestConnectionFactory.Instance,
+                Exchange = "amq.direct",
+                QueueName = Guid.NewGuid().ToString(),
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions(),
+            };
+            Reader = new RabbitMQReader(setup, false);
         }
 
         private RabbitMQReader Reader { get; set; }
@@ -36,12 +46,24 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             uint msgCount = 0;
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
             model.QueueDeclarePassive(null).ReturnsForAnyArgs(x => new QueueDeclareOk(string.Empty, Thread.VolatileRead(ref msgCount), 0));
 
             var delay = TimeSpan.FromSeconds(15);
-            using (var rdr = new RabbitMQReader(connFactory, null, null, false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null))
+
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = connFactory,
+                Exchange = null,
+                QueueName = null,
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions(),
+            };
+            using (var rdr = new RabbitMQReader(setup, false))
             using (var timer = new Timer(state => Thread.VolatileWrite(ref msgCount, 1), null, delay, TimeSpan.Zero))
             {
                 var stopwatch = Stopwatch.StartNew();
@@ -127,11 +149,21 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
 
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
-
-            using (var rdr = new RabbitMQReader(connFactory, null, null, false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null))
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = connFactory,
+                Exchange = null,
+                QueueName = null,
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions(),
+            };
+            using (var rdr = new RabbitMQReader(setup, false))
             {
                 rdr.EnsureOpen(TimeSpan.FromSeconds(30), CancellationToken.None);
                 conn.DidNotReceive().Dispose();
@@ -147,10 +179,20 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
-
-            using (var rdr = new RabbitMQReader(connFactory, null, null, false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null))
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = connFactory,
+                Exchange = null,
+                QueueName = null,
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions(),
+            };
+            using (var rdr = new RabbitMQReader(setup, false))
             {
                 rdr.EnsureOpen(TimeSpan.FromSeconds(30), CancellationToken.None);
                 model.DidNotReceive().Dispose();
@@ -169,11 +211,22 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             throttlerFactory.Create(null, null).ReturnsForAnyArgs(throttler);
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
             model.QueueDeclarePassive(null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 1, 0));
 
-            using (var rdr = new RabbitMQReader(connFactory, null, null, false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions {DequeueThrottlerFactory = throttlerFactory }, null))
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = connFactory,
+                Exchange = null,
+                QueueName = null,
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions { DequeueThrottlerFactory = throttlerFactory },
+            };
+            using (var rdr = new RabbitMQReader(setup, false))
             {
                 throttler.WhenForAnyArgs(x => x.Throttle(0, 0, CancellationToken.None)).Do(x =>
                 {
@@ -209,6 +262,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var queueName = Guid.NewGuid().ToString();
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
             conn.IsOpen.Returns(true);
             model.IsClosed.Returns(false);
@@ -218,7 +272,17 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var result = new BasicGetResult(0, false, null, null, 0, null, payload);
             model.BasicGet(queueName, false).Returns(result);
 
-            using (var rdr = new RabbitMQReader(connFactory, Constants.DefaultExchange, queueName, false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null))
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = connFactory,
+                Exchange = Constants.DefaultExchange,
+                QueueName = queueName,
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions(),
+            };
+            using (var rdr = new RabbitMQReader(setup, false))
             {
                 var msg = rdr.Dequeue(TimeSpan.FromSeconds(30), CancellationToken.None);
                 Assert.Equal(payload, msg.Body.CopyToByteArray());
@@ -233,10 +297,21 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
 
             connFactory.CreateConnection().Returns(conn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
 
-            using (var rdr = new RabbitMQReader(connFactory, null, null, false, true, TimeSpan.FromMinutes(20), new RabbitMQReaderOptions(), null))
+            var setup = new RabbitMQReaderSetup
+            {
+                ConnectionFactory = connFactory,
+                Exchange = null,
+                QueueName = null,
+                IsDurable = false,
+                DeleteQueueOnClose = true,
+                QueueTimeToLive = TimeSpan.FromMinutes(20),
+                Options = new RabbitMQReaderOptions(),
+            };
+            using (var rdr = new RabbitMQReader(setup, false))
             {
                 rdr.AcknowledgeMessage(5, TimeSpan.FromSeconds(90), CancellationToken.None);
                 model.Received().BasicAck(5, false);

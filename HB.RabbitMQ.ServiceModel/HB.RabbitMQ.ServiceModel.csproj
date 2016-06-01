@@ -79,6 +79,8 @@
     <Compile Include="ExtensionMethods\ConcurrentDictionaryExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\LazyExtensionMethods.cs" />
     <Compile Include="PredeclaredExchangeNames.cs" />
+    <Compile Include="RabbitMQReaderSetup.cs" />
+    <Compile Include="RabbitMQWriterSetup.cs" />
     <Compile Include="TaskQueue\Activation\IRabbitMQQueueMonitor.cs" />
     <Compile Include="TaskQueue\Activation\MessagePublicationNotificationService+Client.cs" />
     <Compile Include="TaskQueue\Activation\MessagePublicationNotificationService.cs" />

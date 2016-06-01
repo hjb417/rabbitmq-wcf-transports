@@ -25,9 +25,23 @@ using RabbitMQ.Client;
 
 namespace HB.RabbitMQ.ServiceModel
 {
-    internal interface IRabbitMQReaderWriterFactory
+    public sealed class RabbitMQWriterSetup : ICloneable
     {
-        IRabbitMQReader CreateReader(RabbitMQReaderSetup setup);
-        IRabbitMQWriter CreateWriter(RabbitMQWriterSetup setup);
+        public IConnectionFactory ConnectionFactory { get; set; }
+        public TimeSpan Timeout { get; set; }
+        public CancellationToken CancelToken { get; set; }
+        public RabbitMQWriterOptions Options { get; set; }
+
+        public RabbitMQWriterSetup Clone()
+        {
+            var clone = (RabbitMQWriterSetup)MemberwiseClone();
+            clone.Options = clone.Options?.Clone();
+            return clone;
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 }

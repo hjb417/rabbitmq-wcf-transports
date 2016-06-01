@@ -50,8 +50,32 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
             var connFactory = Binding.CreateConnectionFactory(_listenUri.Host, _listenUri.Port);
-            _reader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, _listenUri.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
-            _writer = Binding.QueueReaderWriterFactory.CreateWriter(connFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.WriterOptions);
+
+            var readerSetup = new RabbitMQReaderSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = Binding.DeleteOnClose,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = null,
+                Options = Binding.ReaderOptions,
+                QueueName = _listenUri.QueueName,
+                QueueTimeToLive = Binding.TimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+
+            _reader = Binding.QueueReaderWriterFactory.CreateReader(readerSetup);
+
+            var writerSetup = new RabbitMQWriterSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                Options = Binding.WriterOptions,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+
+            _writer = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
         }
 
         protected override TChannel OnAcceptChannel(TimeSpan timeout)
@@ -94,7 +118,22 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     try
                     {
                         var connFactory = Binding.CreateConnectionFactory(clientUri.Host, clientUri.Port);
-                        reader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localUri.QueueName, false, true, Binding.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+
+                        var setup = new RabbitMQReaderSetup
+                        {
+                            CancelToken = ConcurrentOperationManager.Token,
+                            ConnectionFactory = connFactory,
+                            DeleteQueueOnClose = true,
+                            Exchange = Binding.Exchange,
+                            IsDurable = false,
+                            MaxPriority = null,
+                            Options = Binding.ReaderOptions,
+                            QueueName = localUri.QueueName,
+                            QueueTimeToLive = Binding.TimeToLive,
+                            Timeout = timer.RemainingTime,
+                        };
+
+                        reader = Binding.QueueReaderWriterFactory.CreateReader(setup);
                         _writer.Enqueue(Binding.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                         return (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader);
                     }

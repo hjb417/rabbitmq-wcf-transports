@@ -38,13 +38,14 @@ namespace HB.RabbitMQ.ServiceModel
 
         public static RabbitMQReaderWriterFactory Instance { get; private set; }
 
-        public IRabbitMQReader CreateReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, TimeSpan timeout, CancellationToken cancelToken, RabbitMQReaderOptions options, int? maxPriority)
+        public IRabbitMQReader CreateReader(RabbitMQReaderSetup setup)
         {
+            setup = setup.Clone();
             RabbitMQReader reader = null;
             try
             {
-                reader = new RabbitMQReader(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive, options, maxPriority);
-                reader.EnsureOpen(timeout, cancelToken);
+                reader = new RabbitMQReader(setup, false);
+                reader.EnsureOpen(setup.Timeout, setup.CancelToken);
                 return reader;
             }
             catch
@@ -54,13 +55,14 @@ namespace HB.RabbitMQ.ServiceModel
             }
         }
 
-        public IRabbitMQWriter CreateWriter(IConnectionFactory connectionFactory, TimeSpan timeout, CancellationToken cancelToken, RabbitMQWriterOptions options)
+        public IRabbitMQWriter CreateWriter(RabbitMQWriterSetup setup)
         {
+            setup = setup.Clone();
             RabbitMQWriter writer = null;
             try
             {
-                writer = new RabbitMQWriter(connectionFactory, options);
-                writer.EnsureOpen(timeout, cancelToken);
+                writer = new RabbitMQWriter(setup, false);
+                writer.EnsureOpen(setup.Timeout, setup.CancelToken);
                 return writer;
             }
             catch

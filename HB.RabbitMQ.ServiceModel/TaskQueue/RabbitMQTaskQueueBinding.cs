@@ -83,8 +83,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { _confMode = value; }
         }
 
-        public bool AutoCreateServerQueue { get; set; }
-
         public override string Scheme { get { return _transport.Scheme; } }
 
         public string Exchange

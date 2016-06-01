@@ -110,7 +110,20 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var url = new RabbitMQTaskQueueUri(Uri.ToString());
             //create the queue
             var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
-            using(Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, url.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority))
+            var setup = new RabbitMQReaderSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = Binding.DeleteOnClose,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = Binding.MaxPriority,
+                Options = Binding.ReaderOptions,
+                QueueName = url.QueueName,
+                QueueTimeToLive = Binding.TimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+            using (Binding.QueueReaderWriterFactory.CreateReader(setup))
             {
                 _inputChannels = new ConcurrentQueue<RabbitMQTaskQueueReplyChannel>();
                 _inputChannels.Enqueue(CreateInputChannel());

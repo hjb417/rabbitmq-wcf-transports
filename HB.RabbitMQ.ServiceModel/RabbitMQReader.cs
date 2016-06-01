@@ -23,6 +23,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
+using HB.RabbitMQ.ServiceModel.TaskQueue;
 using HB.RabbitMQ.ServiceModel.Throttling;
 using RabbitMQ.Client;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
@@ -33,22 +34,25 @@ namespace HB.RabbitMQ.ServiceModel
     {
         private readonly ConcurrentOperationManager _invocationTracker;
         private volatile bool _isDisposed;
-        private bool _deleteQueue;
         private static readonly TimeSpan _keepAliveInterval = TimeSpan.FromMinutes(5);
         private static readonly byte[] _emptyBuffer = new byte[0];
         private readonly RabbitMQReaderConnection _conn;
         private volatile bool _softCloseRequested;
         private readonly IDequeueThrottler _throttler;
+        private readonly RabbitMQReaderSetup _setup;
+        private readonly bool _deleteQueue;
 
-        public RabbitMQReader(IConnectionFactory connectionFactory, string exchange, string queueName, bool isDurable, bool deleteQueueOnClose, TimeSpan? queueTimeToLive, RabbitMQReaderOptions options, int? maxPriority)
+        public RabbitMQReader(RabbitMQReaderSetup setup, bool cloneSetup)
         {
             MethodInvocationTrace.Write();
-            QueueName = queueName;
-            Exchange = exchange;
+            _setup = cloneSetup ? setup.Clone() : setup;
             _invocationTracker = new ConcurrentOperationManager(GetType().FullName);
-            _conn = new RabbitMQReaderConnection(connectionFactory, exchange, queueName, isDurable, deleteQueueOnClose, queueTimeToLive, options, maxPriority);
-            _deleteQueue = !isDurable;
-            _throttler = options.DequeueThrottlerFactory.Create(exchange,queueName);
+            _conn = RabbitMQReaderConnection.Create(_setup, false);
+            _deleteQueue = !_setup.IsDurable;
+
+            _throttler = (_setup.Options == null)
+                ? NoOpDequeueThrottler.Instance
+                : _setup.Options.DequeueThrottlerFactory.Create(_setup.Exchange, _setup.QueueName);
         }
 
         [ExcludeFromCodeCoverage]
@@ -57,8 +61,8 @@ namespace HB.RabbitMQ.ServiceModel
             Dispose(false);
         }
 
-        public string QueueName { get; private set; }
-        public string Exchange { get; private set; }
+        public string QueueName { get { return _setup.QueueName; } }
+        public string Exchange { get { return _setup.Exchange; } }
 
         public void EnsureOpen(TimeSpan timeout, CancellationToken cancelToken)
         {
@@ -140,7 +144,7 @@ namespace HB.RabbitMQ.ServiceModel
                 try
                 {
                     var remTime = timeoutTimer.RemainingTime;
-                    if(remTime.TotalSeconds > int.MaxValue)
+                    if (remTime.TotalSeconds > int.MaxValue)
                     {
                         remTime = TimeSpan.FromMilliseconds(int.MaxValue);
                     }

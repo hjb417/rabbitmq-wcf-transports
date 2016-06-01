@@ -66,7 +66,20 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 
                 try
                 {
-                    _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localUri.QueueName, Binding.IsDurable, Binding.DeleteOnClose, Binding.TimeToLive, timer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+                    var setup = new RabbitMQReaderSetup
+                    {
+                        CancelToken = ConcurrentOperationManager.Token,
+                        ConnectionFactory = connFactory,
+                        DeleteQueueOnClose = Binding.DeleteOnClose,
+                        Exchange = Binding.Exchange,
+                        IsDurable = Binding.IsDurable,
+                        MaxPriority = null,
+                        Options = Binding.ReaderOptions,
+                        QueueName = localUri.QueueName,
+                        QueueTimeToLive = Binding.TimeToLive,
+                        Timeout = timer.RemainingTime,
+                    };
+                    _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
                     QueueWriter.Enqueue(Binding.Exchange, _remoteAddress.QueueName, createSessionReqMsg, _bufferMgr, Binding, MessageEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                     using (var msg = _queueReader.Dequeue(Binding, MessageEncoderFactory, timer.RemainingTime, ConcurrentOperationManager.Token))
                     {

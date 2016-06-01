@@ -79,12 +79,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             CloseSessionRequestReceived = false;
             InputSessionClosingRequestReceived = false;
             base.OnOpen(timeoutTimer.RemainingTime);
-            if ((RemoteAddress != null) && Binding.AutoCreateServerQueue)
-            {
-                var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
-                //create the queue if it doesn't already exist.
-                Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, _remoteUri.QueueName, true, false, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority).Dispose();
-            }
         }
 
         public IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)

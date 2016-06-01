@@ -35,7 +35,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public const string WriterOptions = "writerOptions";
         public const string ReaderOptions = "readerOptions";
         public const string IncludeProcessCommandLineInMessageHeaders = "includeProcessCommandLineInMessageHeaders";
-        public const string AutoCreateServerQueue = "autoCreateServerQueue";
         public const string MessageConfirmationMode = "messageConfirmationMode";
         public const string Exchange = "exchange";
         public const string IsDurable = "isDurable";

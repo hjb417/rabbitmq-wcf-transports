@@ -61,12 +61,21 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
             var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
-            if (Binding.AutoCreateServerQueue)
-            {
-                Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, RemoteUri.QueueName, Binding.IsDurable, false, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, Binding.MaxPriority).Dispose();
-            }
             var localAddress = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(connFactory, Binding.Exchange, localAddress.QueueName, Binding.IsDurable, true, Binding.TimeToLive, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token, Binding.ReaderOptions, null);
+            var setup = new RabbitMQReaderSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = true,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = Binding.MaxPriority,
+                Options = Binding.ReaderOptions,
+                QueueName = localAddress.QueueName,
+                QueueTimeToLive = Binding.TimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)

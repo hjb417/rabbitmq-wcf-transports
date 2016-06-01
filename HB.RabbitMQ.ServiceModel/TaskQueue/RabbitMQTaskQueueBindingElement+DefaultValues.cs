@@ -38,7 +38,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public const string Protocol = AmqpProtocols.Default;
             public const bool IncludeProcessCommandLineInQueueArguments = false;
             public const bool IncludeProcessCommandLineInMessageHeaders = false;
-            public const bool AutoCreateServerQueue = false;
             public const string WriterOptions = null;
             public const string ReaderOptions = null;
             public const string MaxPriority = null;

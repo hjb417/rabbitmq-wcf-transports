@@ -107,6 +107,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var mockConn = Substitute.For<IConnection>();
             var model = Substitute.For<IModel>();
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
@@ -124,6 +125,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var mockConn = Substitute.For<IConnection>();
             var model = Substitute.For<IModel>();
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
@@ -141,6 +143,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var mockConn = Substitute.For<IConnection>();
             var model = Substitute.For<IModel>();
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
@@ -166,6 +169,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
             model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(c => model.BasicAcks += Raise.EventWith<BasicAckEventArgs>());
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
@@ -182,6 +186,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
             model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(c => model.BasicNacks += Raise.EventWith<BasicNackEventArgs>());
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
@@ -207,6 +212,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             var model = Substitute.For<IModel>();
             model.WhenForAnyArgs(x => x.BasicPublish(null, null, false, null, null)).Do(c => model.BasicReturn += Raise.EventWith<BasicReturnEventArgs>());
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
@@ -233,6 +239,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             model.WhenForAnyArgs(x => x.QueueDeleteNoWait(null, false, false)).Do(x => { throw new Exception(); });
 
             connFactory.CreateConnection().Returns(mockConn);
+            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(mockConn);
             mockConn.CreateModel().Returns(model);
 
             var queueName = Guid.NewGuid().ToString();
