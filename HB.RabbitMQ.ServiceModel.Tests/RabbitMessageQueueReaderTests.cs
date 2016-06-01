@@ -49,6 +49,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
             conn.CreateModel().Returns(model);
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
+            model.MessageCount(null).ReturnsForAnyArgs(x => Thread.VolatileRead(ref msgCount));
             model.QueueDeclarePassive(null).ReturnsForAnyArgs(x => new QueueDeclareOk(string.Empty, Thread.VolatileRead(ref msgCount), 0));
 
             var delay = TimeSpan.FromSeconds(15);
@@ -268,6 +269,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             model.IsClosed.Returns(false);
             model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(queueName, 1, 0));
             model.QueueDeclarePassive(null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 1, 0));
+            model.MessageCount(null).ReturnsForAnyArgs(x => 1u);
+
             var payload = Guid.NewGuid().ToByteArray();
             var result = new BasicGetResult(0, false, null, null, 0, null, payload);
             model.BasicGet(queueName, false).Returns(result);
