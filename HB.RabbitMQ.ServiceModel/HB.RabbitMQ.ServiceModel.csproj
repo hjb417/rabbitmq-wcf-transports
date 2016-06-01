@@ -86,10 +86,10 @@
     <Compile Include="TaskQueue\Activation\QueueDeletedEventArgs.cs" />
     <Compile Include="TaskQueue\Activation\QueueStatistics.cs" />
     <Compile Include="TaskQueue\Activation\RabbitMQQueueMonitor.cs" />
-    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+ApplicationInfo.cs" />
-    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+ApplicationPoolInfo.cs" />
-    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter+NewListenerChannelInstanceConstraints.cs" />
-    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapterInstance+ApplicationInfo.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapterInstance+ApplicationPoolInfo.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapterInstance+NewListenerChannelInstanceConstraints.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapterInstance.cs" />
     <Compile Include="DequeueResult.cs" />
     <Compile Include="CloseReasons.cs" />
     <Compile Include="ConcurrentOperationManager+OperationContext.cs" />
@@ -156,6 +156,7 @@
     <Compile Include="Runtime\InteropServices\WebHostProtocolSafeHandle.cs" />
     <Compile Include="Runtime\InteropServices\WebhostRegisterProtocol.cs" />
     <Compile Include="Runtime\InteropServices\WebhostUnregisterProtocol.cs" />
+    <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter.cs" />
     <Compile Include="TaskQueue\Duplex\Actions.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CloseSessionRequest.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CreateSessionRequest.cs" />

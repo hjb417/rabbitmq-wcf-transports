@@ -20,34 +20,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Threading;
 using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    partial class RabbitMQTaskQueueListenerAdapter
+    partial class RabbitMQTaskQueueListenerAdapterInstance
     {
         private sealed class ApplicationInfo
         {
-            private static int _nextListenerChannelId;
             private bool _canOpenNewListenerChannelInstance;
             private bool _sysCanOpenNewListenerChannelInstance;
             private ApplicationRequestsBlockedStates _requestsBlockedState;
+            private static readonly object _nextIdLock = new object();
 
-            public event EventHandler CanOpenNewListenerChannelInstanceChanged;
-
-            public ApplicationInfo(string applicationKey, string applicationPath, int siteId, string applicationPoolName, ApplicationPoolStates applicationPoolState, ApplicationRequestsBlockedStates requestsBlockedState, Uri messagePublicationNotificationServiceUri)
+            public ApplicationInfo(string applicationKey, string applicationPath, int siteId, string applicationPoolName, ApplicationPoolStates applicationPoolState, ApplicationRequestsBlockedStates requestsBlockedState, Uri messagePublicationNotificationServiceUri, Func<int> channelIdFactory)
             {
-                _requestsBlockedState = requestsBlockedState;
                 CreationTime = DateTimeOffset.Now;
+                _requestsBlockedState = requestsBlockedState;
                 ApplicationKey = applicationKey;
                 ApplicationPath = applicationPath;
                 ApplicationPoolName = applicationPoolName;
                 ApplicationPoolState = applicationPoolState;
                 ListenerChannelSetup = new ListenerChannelSetup(applicationKey, applicationPath, messagePublicationNotificationServiceUri);
-                ListenerChannelId = new Lazy<int>(() => Interlocked.Increment(ref _nextListenerChannelId));
+                ListenerChannelId = new Lazy<int>(channelIdFactory);
                 SiteId = siteId;
                 CanOpenNewListenerChannelInstance = true;
             }
@@ -71,22 +68,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 }
             }
 
-            private bool SystemCanOpenNewListenerChannelInstance
-            {
-                get { return _sysCanOpenNewListenerChannelInstance; }
-                set
-                {
-                    if (_sysCanOpenNewListenerChannelInstance != value)
-                    {
-                        _sysCanOpenNewListenerChannelInstance = value;
-                        CanOpenNewListenerChannelInstanceChanged?.Invoke(this, EventArgs.Empty);
-                    }
-                }
-            }
-
             public bool CanOpenNewListenerChannelInstance
             {
-                get { return SystemCanOpenNewListenerChannelInstance; }
+                get { return _sysCanOpenNewListenerChannelInstance; }
                 set
                 {
                     _canOpenNewListenerChannelInstance = value;
@@ -97,7 +81,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
             private void UpdateCanOpenNewListenerChannelInstance()
             {
-                SystemCanOpenNewListenerChannelInstance =
+                _sysCanOpenNewListenerChannelInstance =
                     _canOpenNewListenerChannelInstance
                     &&
                     (RequestsBlockedState == ApplicationRequestsBlockedStates.Processsed)
@@ -107,7 +91,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 
             public void UpdateApplicationPool(string applicationPoolName, ApplicationPoolStates applicationPoolState)
             {
-                //TODO: should I assign a new listener channel id?
                 ApplicationPoolName = applicationPoolName;
                 ApplicationPoolState = applicationPoolState;
                 UpdateCanOpenNewListenerChannelInstance();

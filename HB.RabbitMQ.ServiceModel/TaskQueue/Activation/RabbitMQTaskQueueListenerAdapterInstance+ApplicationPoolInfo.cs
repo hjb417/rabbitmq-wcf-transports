@@ -19,17 +19,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-using System;
+using HB.RabbitMQ.ServiceModel.Activation.ListenerAdapter;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
 {
-    partial class RabbitMQTaskQueueListenerAdapter
+    partial class RabbitMQTaskQueueListenerAdapterInstance
     {
-        [Serializable, Flags]
-        private enum NewListenerChannelInstanceConstraints
+        private sealed class ApplicationPoolInfo
         {
-            None,
-            HasPendingMessages = 0x1,
+            public ApplicationPoolInfo(string name)
+            {
+                Name = Name;
+                State = ApplicationPoolStates.Disabled;
+            }
+
+            public string Name { get; }
+            public ApplicationPoolStates State { get; set; }
         }
     }
 }
