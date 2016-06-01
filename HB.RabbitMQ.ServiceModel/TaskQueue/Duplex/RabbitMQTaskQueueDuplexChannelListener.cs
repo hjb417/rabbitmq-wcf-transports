@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml;
@@ -49,33 +50,40 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
-            var connFactory = Binding.CreateConnectionFactory(_listenUri.Host, _listenUri.Port);
 
-            var readerSetup = new RabbitMQReaderSetup
+            using (ConcurrentOperationManager.TrackOperation())
             {
-                CancelToken = ConcurrentOperationManager.Token,
-                ConnectionFactory = connFactory,
-                DeleteQueueOnClose = Binding.DeleteOnClose,
-                Exchange = Binding.Exchange,
-                IsDurable = Binding.IsDurable,
-                MaxPriority = null,
-                Options = Binding.ReaderOptions,
-                QueueName = _listenUri.QueueName,
-                QueueTimeToLive = Binding.TimeToLive,
-                Timeout = timeoutTimer.RemainingTime,
-            };
+                var connFactory = Binding.CreateConnectionFactory(_listenUri.Host, _listenUri.Port);
 
-            _reader = Binding.QueueReaderWriterFactory.CreateReader(readerSetup);
+                var readerSetup = new RabbitMQReaderSetup
+                {
+                    CancelToken = ConcurrentOperationManager.Token,
+                    ConnectionFactory = connFactory,
+                    DeleteQueueOnClose = Binding.DeleteOnClose,
+                    Exchange = Binding.Exchange,
+                    IsDurable = Binding.IsDurable,
+                    MaxPriority = null,
+                    Options = Binding.ReaderOptions,
+                    QueueName = _listenUri.QueueName,
+                    QueueTimeToLive = Binding.TimeToLive,
+                    Timeout = timeoutTimer.RemainingTime,
+                };
+                readerSetup.QueueArguments = new Dictionary<string, object>();
+                readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, true);
+                readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
 
-            var writerSetup = new RabbitMQWriterSetup
-            {
-                CancelToken = ConcurrentOperationManager.Token,
-                ConnectionFactory = connFactory,
-                Options = Binding.WriterOptions,
-                Timeout = timeoutTimer.RemainingTime,
-            };
+                _reader = Binding.QueueReaderWriterFactory.CreateReader(readerSetup);
 
-            _writer = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
+                var writerSetup = new RabbitMQWriterSetup
+                {
+                    CancelToken = ConcurrentOperationManager.Token,
+                    ConnectionFactory = connFactory,
+                    Options = Binding.WriterOptions,
+                    Timeout = timeoutTimer.RemainingTime,
+                };
+
+                _writer = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
+            }
         }
 
         protected override TChannel OnAcceptChannel(TimeSpan timeout)
@@ -132,6 +140,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                             QueueTimeToLive = Binding.TimeToLive,
                             Timeout = timer.RemainingTime,
                         };
+                        setup.QueueArguments = new Dictionary<string, object>();
+                        setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
+                        setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
 
                         reader = Binding.QueueReaderWriterFactory.CreateReader(setup);
                         _writer.Enqueue(Binding.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);

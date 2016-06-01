@@ -105,12 +105,16 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Activation
                 var queues = _deserializer.Deserialize<Dictionary<string, object>[]>(json)
                     .Where(q => q.ContainsKey("message_stats"))
                     .Where(q => q.ContainsKey("messages_ready"))
+                    .Where(q => q.ContainsKey("arguments"))
                     .Select(q => new
                     {
+                        Arguments = (Dictionary<string, object>) q["arguments"],
                         QueueName = (string)q["name"],
                         MessagesReady = Convert.ToInt64(q["messages_ready"]),
                         MessageStats = (Dictionary<string, object>)q["message_stats"],
                     })
+                    .Where(q => Constants.Scheme.Equals(q.Arguments.GetValueOrDefault(TaskQueueReaderQueueArguments.Scheme)))
+                    .Where(q => true.Equals(q.Arguments.ContainsKey(TaskQueueReaderQueueArguments.IsTaskInputQueue)))
                     .Select(q => new
                     {
                         q.QueueName,

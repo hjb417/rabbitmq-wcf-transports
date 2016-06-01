@@ -28,6 +28,10 @@ namespace HB.RabbitMQ.ServiceModel
 {
     public sealed class RabbitMQReaderSetup : ICloneable
     {
+        public RabbitMQReaderSetup()
+        {
+        }
+
         public IConnectionFactory ConnectionFactory { get; set; }
         public string Exchange { get; set; }
         public string QueueName { get; set; }

@@ -112,7 +112,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         protected override void OnOpen(TimeSpan timeout)
         {
             MethodInvocationTrace.Write();
-            ConcurrentOperationManager = new ServiceModel.ConcurrentOperationManager(GetType().FullName);
+            ConcurrentOperationManager = new ConcurrentOperationManager(GetType().FullName);
             BufferManager = Binding.CreateBufferManager();
         }
 

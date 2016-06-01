@@ -20,32 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.Threading;
-using RabbitMQ.Client;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HB.RabbitMQ.ServiceModel
+namespace HB.RabbitMQ.ServiceModel.TaskQueue
 {
-    public sealed class RabbitMQWriterSetup : ICloneable
+    internal sealed class TaskQueueReaderQueueArguments
     {
-        public RabbitMQWriterSetup()
-        {
-        }
+        private const string ArgumentsPrefix = "hb.rmqtq.sm-";
 
-        public IConnectionFactory ConnectionFactory { get; set; }
-        public TimeSpan Timeout { get; set; }
-        public CancellationToken CancelToken { get; set; }
-        public RabbitMQWriterOptions Options { get; set; }
-
-        public RabbitMQWriterSetup Clone()
-        {
-            var clone = (RabbitMQWriterSetup)MemberwiseClone();
-            clone.Options = clone.Options?.Clone();
-            return clone;
-        }
-
-        object ICloneable.Clone()
-        {
-            return Clone();
-        }
+        public const string Scheme = ArgumentsPrefix + "Scheme";
+        public const string IsTaskInputQueue = ArgumentsPrefix + "IsTaskInputQueue";
     }
 }

@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
@@ -49,24 +50,31 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
-            var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-            var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
 
-            var setup = new RabbitMQReaderSetup
+            using (ConcurrentOperationManager.TrackOperation())
             {
-                CancelToken = ConcurrentOperationManager.Token,
-                ConnectionFactory = connFactory,
-                DeleteQueueOnClose = Binding.DeleteOnClose,
-                Exchange = Binding.Exchange,
-                IsDurable = Binding.IsDurable,
-                MaxPriority = Binding.MaxPriority,
-                Options = Binding.ReaderOptions,
-                QueueName = url.QueueName,
-                QueueTimeToLive = Binding.TimeToLive,
-                Timeout = timeoutTimer.RemainingTime,
-            };
+                var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
+                var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
 
-            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
+                var setup = new RabbitMQReaderSetup
+                {
+                    CancelToken = ConcurrentOperationManager.Token,
+                    ConnectionFactory = connFactory,
+                    DeleteQueueOnClose = Binding.DeleteOnClose,
+                    Exchange = Binding.Exchange,
+                    IsDurable = Binding.IsDurable,
+                    MaxPriority = Binding.MaxPriority,
+                    Options = Binding.ReaderOptions,
+                    QueueName = url.QueueName,
+                    QueueTimeToLive = Binding.TimeToLive,
+                    Timeout = timeoutTimer.RemainingTime,
+                };
+                setup.QueueArguments = new Dictionary<string, object>();
+                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
+                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+
+                _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
+            }
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)

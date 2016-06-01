@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml;
@@ -79,6 +80,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                         QueueTimeToLive = Binding.TimeToLive,
                         Timeout = timer.RemainingTime,
                     };
+                    setup.QueueArguments = new Dictionary<string, object>();
+                    setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
+                    setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+
                     _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
                     QueueWriter.Enqueue(Binding.Exchange, _remoteAddress.QueueName, createSessionReqMsg, _bufferMgr, Binding, MessageEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
                     using (var msg = _queueReader.Dequeue(Binding, MessageEncoderFactory, timer.RemainingTime, ConcurrentOperationManager.Token))
