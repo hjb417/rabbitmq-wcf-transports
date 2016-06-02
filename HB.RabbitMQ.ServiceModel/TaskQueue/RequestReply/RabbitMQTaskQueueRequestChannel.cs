@@ -61,28 +61,26 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
-            using (ConcurrentOperationManager.TrackOperation())
+
+            var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
+            var localAddress = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
+            var setup = new RabbitMQReaderSetup
             {
-                var connFactory = Binding.CreateConnectionFactory(RemoteAddress.Uri.Host, RemoteAddress.Uri.Port);
-                var localAddress = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-                var setup = new RabbitMQReaderSetup
-                {
-                    CancelToken = ConcurrentOperationManager.Token,
-                    ConnectionFactory = connFactory,
-                    DeleteQueueOnClose = true,
-                    Exchange = Binding.Exchange,
-                    IsDurable = Binding.IsDurable,
-                    MaxPriority = Binding.MaxPriority,
-                    Options = Binding.ReaderOptions,
-                    QueueName = localAddress.QueueName,
-                    QueueTimeToLive = Binding.TimeToLive,
-                    Timeout = timeoutTimer.RemainingTime,
-                };
-                setup.QueueArguments = new Dictionary<string, object>();
-                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
-                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
-                _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
-            }
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = true,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = Binding.MaxPriority,
+                Options = Binding.ReaderOptions,
+                QueueName = localAddress.QueueName,
+                QueueTimeToLive = Binding.ReplyQueueTimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+            setup.QueueArguments = new Dictionary<string, object>();
+            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
+            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)

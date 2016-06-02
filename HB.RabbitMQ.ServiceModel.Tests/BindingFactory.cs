@@ -39,8 +39,12 @@ namespace HB.RabbitMQ.ServiceModel.Tests
                 ReceiveTimeout = TimeSpan.MaxValue,
                 SendTimeout = TimeSpan.MaxValue,
                 CloseTimeout = TimeSpan.MaxValue,
-                TimeToLive = TimeSpan.FromMinutes(10),
+                TaskQueueTimeToLive = TimeSpan.FromMinutes(10),
+                ReplyQueueTimeToLive = TimeSpan.FromMinutes(10),
                 CommunicationObjectCreatedCallback = communicationObjectCreatedCallback,
+                Username = "guest",
+                Password = "guest",
+                UseBackgroundThreadsForIO = true,
             };
         }
 

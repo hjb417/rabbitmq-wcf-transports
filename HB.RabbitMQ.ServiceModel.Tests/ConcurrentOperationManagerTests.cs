@@ -52,15 +52,20 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         {
             var delay = TimeSpan.FromSeconds(15);
             var op = ConcurrentOperationManager.TrackOperation();
-            StartNewTask(() =>
+            using (var waitEvent = new ManualResetEventSlim())
             {
-                Thread.Sleep(delay);
-                op.Dispose();
-            });
-            var timer = Stopwatch.StartNew();
-            ConcurrentOperationManager.Dispose();
-            timer.Stop();
-            Assert.True(timer.Elapsed >= delay);
+                StartNewTask(() =>
+                {
+                    waitEvent.Set();
+                    Thread.Sleep(delay);
+                    op.Dispose();
+                });
+                waitEvent.Wait();
+                var timer = Stopwatch.StartNew();
+                ConcurrentOperationManager.Dispose();
+                timer.Stop();
+                Assert.True(timer.Elapsed >= delay);
+            }
         }
 
         [Fact]

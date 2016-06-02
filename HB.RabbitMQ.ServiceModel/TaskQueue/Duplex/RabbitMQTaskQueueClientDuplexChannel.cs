@@ -77,7 +77,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                         MaxPriority = null,
                         Options = Binding.ReaderOptions,
                         QueueName = localUri.QueueName,
-                        QueueTimeToLive = Binding.TimeToLive,
+                        QueueTimeToLive = Binding.ReplyQueueTimeToLive,
                         Timeout = timer.RemainingTime,
                     };
                     setup.QueueArguments = new Dictionary<string, object>();

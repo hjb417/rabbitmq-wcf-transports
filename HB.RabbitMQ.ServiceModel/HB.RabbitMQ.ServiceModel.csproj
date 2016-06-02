@@ -197,7 +197,7 @@
     <Compile Include="AmqpProtocols.cs" />
     <Compile Include="RabbitMQReader.cs" />
     <Compile Include="RabbitMQWriter.cs" />
-    <Compile Include="TaskQueue\BindingPropertyNames.cs" />
+    <Compile Include="TaskQueue\RabbitMQTaskQueueBindingElement+BindingPropertyNames.cs" />
     <Compile Include="Throttling\IDequeueThrottler.cs" />
     <Compile Include="TaskQueue\Constants.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueBinding.cs" />

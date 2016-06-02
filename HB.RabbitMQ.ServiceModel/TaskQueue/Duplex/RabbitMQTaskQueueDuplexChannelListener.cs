@@ -51,39 +51,36 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
 
-            using (ConcurrentOperationManager.TrackOperation())
+            var connFactory = Binding.CreateConnectionFactory(_listenUri.Host, _listenUri.Port);
+
+            var readerSetup = new RabbitMQReaderSetup
             {
-                var connFactory = Binding.CreateConnectionFactory(_listenUri.Host, _listenUri.Port);
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = Binding.DeleteOnClose,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = null,
+                Options = Binding.ReaderOptions,
+                QueueName = _listenUri.QueueName,
+                QueueTimeToLive = Binding.TaskQueueTimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+            readerSetup.QueueArguments = new Dictionary<string, object>();
+            readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, true);
+            readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
 
-                var readerSetup = new RabbitMQReaderSetup
-                {
-                    CancelToken = ConcurrentOperationManager.Token,
-                    ConnectionFactory = connFactory,
-                    DeleteQueueOnClose = Binding.DeleteOnClose,
-                    Exchange = Binding.Exchange,
-                    IsDurable = Binding.IsDurable,
-                    MaxPriority = null,
-                    Options = Binding.ReaderOptions,
-                    QueueName = _listenUri.QueueName,
-                    QueueTimeToLive = Binding.TimeToLive,
-                    Timeout = timeoutTimer.RemainingTime,
-                };
-                readerSetup.QueueArguments = new Dictionary<string, object>();
-                readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, true);
-                readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+            _reader = Binding.QueueReaderWriterFactory.CreateReader(readerSetup);
 
-                _reader = Binding.QueueReaderWriterFactory.CreateReader(readerSetup);
+            var writerSetup = new RabbitMQWriterSetup
+            {
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                Options = Binding.WriterOptions,
+                Timeout = timeoutTimer.RemainingTime,
+            };
 
-                var writerSetup = new RabbitMQWriterSetup
-                {
-                    CancelToken = ConcurrentOperationManager.Token,
-                    ConnectionFactory = connFactory,
-                    Options = Binding.WriterOptions,
-                    Timeout = timeoutTimer.RemainingTime,
-                };
-
-                _writer = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
-            }
+            _writer = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
         }
 
         protected override TChannel OnAcceptChannel(TimeSpan timeout)
@@ -137,7 +134,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                             MaxPriority = null,
                             Options = Binding.ReaderOptions,
                             QueueName = localUri.QueueName,
-                            QueueTimeToLive = Binding.TimeToLive,
+                            QueueTimeToLive = Binding.ReplyQueueTimeToLive,
                             Timeout = timer.RemainingTime,
                         };
                         setup.QueueArguments = new Dictionary<string, object>();

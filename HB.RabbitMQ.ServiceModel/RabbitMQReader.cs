@@ -191,6 +191,7 @@ namespace HB.RabbitMQ.ServiceModel
                     {
                         throw new ObjectDisposedException(GetType().FullName, e);
                     }
+                    timeoutTimer.ThrowIfNoTimeRemaining();
                     throw;
                 }
             }

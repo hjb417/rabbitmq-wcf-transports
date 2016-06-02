@@ -31,7 +31,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public const int Port = AmqpTcpEndpoint.UseDefaultPort;
             public const long MaxBufferPoolSize = 524288;
             public const long MaxReceivedMessageSize = 65536;
-            public const string QueueTimeToLive = "00:20:00";
+            public const string TaskQueueTimeToLive = null;
+            public const string ReplyQueueTimeToLive = "00:20:00";
             public const string Password = ConnectionFactory.DefaultPass;
             public const string Username = ConnectionFactory.DefaultUser;
             public const string VirtualHost = ConnectionFactory.DefaultVHost;
@@ -41,7 +42,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public const string WriterOptions = null;
             public const string ReaderOptions = null;
             public const string MaxPriority = null;
-            public const string TimeToLive = null;
             public const string Exchange = Constants.DefaultExchange;
             public const string DeleteOnClose = "false";
             public const string IsDurable = "true";

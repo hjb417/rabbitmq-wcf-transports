@@ -51,30 +51,27 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
 
-            using (ConcurrentOperationManager.TrackOperation())
+            var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
+            var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
+
+            var setup = new RabbitMQReaderSetup
             {
-                var url = new RabbitMQTaskQueueUri(LocalAddress.Uri.ToString());
-                var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = Binding.DeleteOnClose,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = Binding.MaxPriority,
+                Options = Binding.ReaderOptions,
+                QueueName = url.QueueName,
+                QueueTimeToLive = Binding.ReplyQueueTimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+            setup.QueueArguments = new Dictionary<string, object>();
+            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
+            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
 
-                var setup = new RabbitMQReaderSetup
-                {
-                    CancelToken = ConcurrentOperationManager.Token,
-                    ConnectionFactory = connFactory,
-                    DeleteQueueOnClose = Binding.DeleteOnClose,
-                    Exchange = Binding.Exchange,
-                    IsDurable = Binding.IsDurable,
-                    MaxPriority = Binding.MaxPriority,
-                    Options = Binding.ReaderOptions,
-                    QueueName = url.QueueName,
-                    QueueTimeToLive = Binding.TimeToLive,
-                    Timeout = timeoutTimer.RemainingTime,
-                };
-                setup.QueueArguments = new Dictionary<string, object>();
-                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
-                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
-
-                _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
-            }
+            _queueReader = Binding.QueueReaderWriterFactory.CreateReader(setup);
         }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)

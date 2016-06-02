@@ -108,33 +108,31 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             base.OnOpen(timeoutTimer.RemainingTime);
-            using (ConcurrentOperationManager.TrackOperation())
+
+            var url = new RabbitMQTaskQueueUri(Uri.ToString());
+            //create the queue
+            var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
+            var setup = new RabbitMQReaderSetup
             {
-                var url = new RabbitMQTaskQueueUri(Uri.ToString());
-                //create the queue
-                var connFactory = Binding.CreateConnectionFactory(url.Host, url.Port);
-                var setup = new RabbitMQReaderSetup
-                {
-                    CancelToken = ConcurrentOperationManager.Token,
-                    ConnectionFactory = connFactory,
-                    DeleteQueueOnClose = Binding.DeleteOnClose,
-                    Exchange = Binding.Exchange,
-                    IsDurable = Binding.IsDurable,
-                    MaxPriority = Binding.MaxPriority,
-                    Options = Binding.ReaderOptions,
-                    QueueName = url.QueueName,
-                    QueueTimeToLive = Binding.TimeToLive,
-                    Timeout = timeoutTimer.RemainingTime,
-                };
-                setup.QueueArguments = new Dictionary<string, object>();
-                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, true);
-                setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
-                using (Binding.QueueReaderWriterFactory.CreateReader(setup))
-                {
-                    _inputChannels = new ConcurrentQueue<RabbitMQTaskQueueReplyChannel>();
-                    _inputChannels.Enqueue(CreateInputChannel());
-                    _inputChannelsBuffer = new BlockingCollection<RabbitMQTaskQueueReplyChannel>(_inputChannels);
-                }
+                CancelToken = ConcurrentOperationManager.Token,
+                ConnectionFactory = connFactory,
+                DeleteQueueOnClose = Binding.DeleteOnClose,
+                Exchange = Binding.Exchange,
+                IsDurable = Binding.IsDurable,
+                MaxPriority = Binding.MaxPriority,
+                Options = Binding.ReaderOptions,
+                QueueName = url.QueueName,
+                QueueTimeToLive = Binding.TaskQueueTimeToLive,
+                Timeout = timeoutTimer.RemainingTime,
+            };
+            setup.QueueArguments = new Dictionary<string, object>();
+            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, true);
+            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+            using (Binding.QueueReaderWriterFactory.CreateReader(setup))
+            {
+                _inputChannels = new ConcurrentQueue<RabbitMQTaskQueueReplyChannel>();
+                _inputChannels.Enqueue(CreateInputChannel());
+                _inputChannelsBuffer = new BlockingCollection<RabbitMQTaskQueueReplyChannel>(_inputChannels);
             }
         }
 

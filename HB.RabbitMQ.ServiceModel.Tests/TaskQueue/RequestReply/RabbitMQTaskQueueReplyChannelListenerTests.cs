@@ -6,6 +6,7 @@ using System.Threading;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply;
 using HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices.VanillaService;
+using RabbitMQ.Client;
 using Xunit;
 using Xunit.Abstractions;
 

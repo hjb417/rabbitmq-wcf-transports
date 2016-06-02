@@ -61,11 +61,18 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { base[BindingPropertyNames.MaxReceivedMessageSize] = value; }
         }
 
-        [ConfigurationProperty(BindingPropertyNames.QueueTimeToLive, DefaultValue = DefaultValues.QueueTimeToLive)]
-        public TimeSpan? QueueTimeToLive
+        [ConfigurationProperty(BindingPropertyNames.TaskQueueTimeToLive, DefaultValue = DefaultValues.TaskQueueTimeToLive)]
+        public TimeSpan? TaskQueueTimeToLive
         {
-            get { return ((TimeSpan?)base[BindingPropertyNames.QueueTimeToLive]); }
-            set { base[BindingPropertyNames.QueueTimeToLive] = value; }
+            get { return ((TimeSpan?)base[BindingPropertyNames.TaskQueueTimeToLive]); }
+            set { base[BindingPropertyNames.TaskQueueTimeToLive] = value; }
+        }
+
+        [ConfigurationProperty(BindingPropertyNames.ReplyQueueTimeToLive, DefaultValue = DefaultValues.ReplyQueueTimeToLive)]
+        public TimeSpan? ReplyQueueTimeToLive
+        {
+            get { return ((TimeSpan?)base[BindingPropertyNames.ReplyQueueTimeToLive]); }
+            set { base[BindingPropertyNames.ReplyQueueTimeToLive] = value; }
         }
 
         [ConfigurationProperty(BindingPropertyNames.MessageConfirmationMode, DefaultValue = MessageConfirmationModes.BeforeReply)]
@@ -115,13 +122,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         {
             get { return ((bool)base[BindingPropertyNames.DeleteOnClose]); }
             set { base[BindingPropertyNames.DeleteOnClose] = value; }
-        }
-
-        [ConfigurationProperty(BindingPropertyNames.TimeToLive, DefaultValue = DefaultValues.TimeToLive)]
-        public TimeSpan? TimeToLive
-        {
-            get { return ((TimeSpan?)base[BindingPropertyNames.TimeToLive]); }
-            set { base[BindingPropertyNames.TimeToLive] = value; }
         }
 
         [ConfigurationProperty(BindingPropertyNames.MaxPriority, DefaultValue = DefaultValues.MaxPriority)]
@@ -185,7 +185,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             var rb = (RabbitMQTaskQueueBinding)binding;
             rb.MaxReceivedMessageSize = MaxReceivedMessageSize;
             rb.MaxBufferPoolSize = MaxBufferPoolSize;
-            rb.QueueTimeToLive = QueueTimeToLive;
+            rb.TaskQueueTimeToLive = TaskQueueTimeToLive;
+            rb.ReplyQueueTimeToLive = ReplyQueueTimeToLive;
             rb.MessageConfirmationMode = MessageConfirmationMode;
             rb.Username = Username;
             rb.Password = Password;
@@ -193,7 +194,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.AutomaticRecoveryEnabled = AutomaticRecoveryEnabled;
             rb.RequestedHeartbeat = RequestedHeartbeat;
             rb.UseBackgroundThreadsForIO = UseBackgroundThreadsForIO;
-
+            rb.Protocol = Protocol;
+            rb.Exchange = Exchange;
+            rb.DeleteOnClose = DeleteOnClose;
+            rb.MaxPriority = MaxPriority;
+            rb.IsDurable = IsDurable;
             WriterOptions.ApplyConfiguration(rb.WriterOptions);
             ReaderOptions.ApplyConfiguration(rb.ReaderOptions);
         }

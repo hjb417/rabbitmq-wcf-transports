@@ -33,7 +33,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private RabbitMQTransportBindingElement _transport;
         private RabbitMQReaderOptions _rdrOptions = new RabbitMQReaderOptions();
         private RabbitMQWriterOptions _writerOptions = new RabbitMQWriterOptions();
-        private TimeSpan? _ttl;
         private IRabbitMQReaderWriterFactory _queueRwFactory = RabbitMQReaderWriterFactory.Instance;
         private MessageConfirmationModes _confMode = MessageConfirmationModes.BeforeReply;
         private string _exchange = Constants.DefaultExchange;
@@ -41,6 +40,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public RabbitMQTaskQueueBinding()
         {
             Initialize();
+            new RabbitMQTaskQueueBindingElement().ApplyConfiguration(this);
         }
 
         public RabbitMQTaskQueueBinding(string configurationName)
@@ -71,12 +71,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { _writerOptions = (value == null) ? new RabbitMQWriterOptions() : value.Clone(); }
         }
 
-        public TimeSpan? QueueTimeToLive
-        {
-            get { return _ttl; }
-            set { _ttl = value; }
-        }
-
         public MessageConfirmationModes MessageConfirmationMode
         {
             get { return _confMode; }
@@ -94,7 +88,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 
         public bool IsDurable { get; set; }
         public bool DeleteOnClose { get; set; }
-        public TimeSpan? TimeToLive { get; set; }
+        public TimeSpan? TaskQueueTimeToLive { get; set; }
+        public TimeSpan? ReplyQueueTimeToLive { get; set; }
         public int? MaxPriority { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
@@ -112,8 +107,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         private void Initialize()
         {
             _transport = new RabbitMQTransportBindingElement(this);
-            IsDurable = true;
-            Protocol = AmqpProtocols.Default;
         }
 
         public override BindingElementCollection CreateBindingElements()
