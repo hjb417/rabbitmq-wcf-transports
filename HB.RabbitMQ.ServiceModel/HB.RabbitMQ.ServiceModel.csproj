@@ -161,6 +161,7 @@
     <Compile Include="TaskQueue\Activation\RabbitMQTaskQueueListenerAdapter.cs" />
     <Compile Include="TaskQueue\Duplex\Actions.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CloseSessionRequest.cs" />
+    <Compile Include="TaskQueue\Duplex\Messages\InputSessionClosingResponse.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CreateSessionRequest.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\CreateSessionResponse.cs" />
     <Compile Include="TaskQueue\Duplex\Messages\InputSessionClosingRequest.cs" />

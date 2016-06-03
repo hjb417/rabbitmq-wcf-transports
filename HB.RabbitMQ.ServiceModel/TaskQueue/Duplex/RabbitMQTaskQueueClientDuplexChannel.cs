@@ -104,6 +104,38 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         {
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
+            if(InputSessionClosingRequestReceived)
+            {
+                using (var msg = Message.CreateMessage(MessageVersion.Default, Actions.InputSessionClosingResponse, new InputSessionClosingResponse()))
+                {
+                    try
+                    {
+                        var sendTimeout = timeoutTimer.RemainingTime;
+                        if (closeReason == CloseReasons.Abort)
+                        {
+                            sendTimeout = TimeSpanHelper.Max(sendTimeout, TimeSpan.FromSeconds(30));
+                        }
+                        Send(msg, sendTimeout);
+                    }
+                    catch (Exception e)
+                    {
+                        bool rethrow = true;
+                        if (closeReason == CloseReasons.Abort)
+                        {
+                            rethrow = false;
+                        }
+                        if (e is RemoteQueueDoesNotExistException)
+                        {
+                            rethrow = false;
+                        }
+                        TraceWarning($"Failed to notify the endpoint [{_remoteSessionUri}] that the queue is closing. {e}", GetType());
+                        if (rethrow)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
             if (!CloseSessionRequestReceived)
             {
                 try

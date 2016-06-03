@@ -16,8 +16,8 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
         private bool _unloadClientAppDomain = true;
         private bool _unloadServerAppDomain = true;
 
-        private readonly TimeSpan _processSleepTime = TimeSpan.FromSeconds(15);
-        private readonly TimeSpan _serverCloseTimeOut = TimeSpan.FromSeconds(20.25);
+        private TimeSpan _processSleepTime = TimeSpan.FromSeconds(3);
+        private readonly TimeSpan _serverCloseTimeOut = TimeSpan.FromSeconds(6);
 
         //private readonly TimeSpan _processSleepTime = TimeSpan.FromMinutes(3);
         //private readonly TimeSpan _serverCloseTimeOut = TimeSpan.FromMinutes(3.25);
@@ -145,6 +145,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
         }
 
         [Fact]
+        //The server shouldn't close because it needs to ensure the client has closed.
         public void ClientTerminateServerCloseTest()
         {
             Client.ProcessStuff(Guid.NewGuid().ToString());
@@ -156,20 +157,19 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
             //all server objects should be open.
             Assert.All(Server.GetStates(), s => Assert.Equal(CommunicationState.Opened, s.State));
 
-            var timer = Stopwatch.StartNew();
             var closeServerTask = StartNewTask(() => Server.Close(TimeSpan.MaxValue));
+            Stopwatch timer = Stopwatch.StartNew();
             closeServerTask.Wait(_serverCloseTimeOut);
             timer.Stop();
-
-            //service should still be executing
-            Assert.False(closeServerTask.IsCompleted);
-            Assert.True(timer.Elapsed >= _serverCloseTimeOut);
 
             //service should have executed
             Assert.Equal(1, Server.Service.ProcessStuffCounter);
 
             //all server objects should be closed or closing
             Assert.All(Server.GetStates(), s => Assert.True(s.ContainsState(CommunicationState.Closed, CommunicationState.Closing)));
+
+            //service should still be executing
+            Assert.False(closeServerTask.IsCompleted);
         }
 
         #endregion

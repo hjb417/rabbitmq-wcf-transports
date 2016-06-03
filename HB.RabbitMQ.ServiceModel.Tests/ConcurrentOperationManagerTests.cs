@@ -64,7 +64,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
                 var timer = Stopwatch.StartNew();
                 ConcurrentOperationManager.Dispose();
                 timer.Stop();
-                Assert.True(timer.Elapsed >= delay);
+                Assert.True(timer.Elapsed >= delay, $"Elapsed={timer.Elapsed}, delay={delay}");
             }
         }
 

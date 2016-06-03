@@ -19,16 +19,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
+using System.Runtime.Serialization;
+
+namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages
 {
-    internal static class Actions
+    [DataContract]
+    internal sealed class InputSessionClosingResponse
     {
-        private const string Prefix = "HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Actions.CreateSessionRequest";
-        public const string CreateSessionRequest = Prefix + "CreateSessionRequest";
-        public const string CreateSessionResponse = Prefix + "CreateSessionResponse";
-        public const string CloseSessionRequest = Prefix + "CloseSessionRequest";
-        public const string InputSessionClosingRequest = Prefix + "InputSessionClosingRequest";
-        public const string InputSessionClosingResponse = Prefix + "InputSessionClosingResponse";
-        public const string KeepAlive = Prefix + "KeepAlive";
     }
 }

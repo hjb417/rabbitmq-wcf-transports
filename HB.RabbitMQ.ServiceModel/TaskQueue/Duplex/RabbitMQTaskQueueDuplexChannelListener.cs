@@ -26,6 +26,7 @@ using System.ServiceModel.Channels;
 using System.Xml;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
+using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
@@ -87,74 +88,73 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         {
             MethodInvocationTrace.Write();
             var timer = TimeoutTimer.StartNew(timeout);
-            if (State != CommunicationState.Opened)
-            {
-                return null;
-            }
             var localUri = RabbitMQTaskQueueUri.Create(Uri.Host, Uri.Port, "s" + Guid.NewGuid().ToString("N"));
             var localAddress = new EndpointAddress(localUri);
             var createSessionResp = new CreateSessionResponse();
-            Message msg = null;
-            try
+            while (true)
             {
-                using (ConcurrentOperationManager.TrackOperation())
-                using (var createSessionRespMsg = Message.CreateMessage(MessageVersion.Default, Actions.CreateSessionResponse, createSessionResp))
+                if (State != CommunicationState.Opened)
                 {
-
-                    try
+                    return null;
+                }
+                Message msg = null;
+                try
+                {
+                    using (ConcurrentOperationManager.TrackOperation())
+                    using (var createSessionRespMsg = Message.CreateMessage(MessageVersion.Default, Actions.CreateSessionResponse, createSessionResp))
                     {
                         msg = _reader.Dequeue(Binding, _msgEncoderFactory, timer.RemainingTime, ConcurrentOperationManager.Token);
-                    }
-                    catch
-                    {
-                        Fault();
-                        throw;
-                    }
-                    RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(_listenUri);
-                    createSessionRespMsg.Headers.ReplyTo = localAddress;
-                    createSessionRespMsg.Headers.From = new EndpointAddress(_listenUri);
-                    createSessionRespMsg.Headers.To = msg.Headers.ReplyTo.Uri;
-                    createSessionRespMsg.Headers.MessageId = new UniqueId();
-                    createSessionRespMsg.Headers.RelatesTo = msg.Headers.MessageId;
+                        RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(_listenUri);
+                        createSessionRespMsg.Headers.ReplyTo = localAddress;
+                        createSessionRespMsg.Headers.From = new EndpointAddress(_listenUri);
+                        createSessionRespMsg.Headers.To = msg.Headers.ReplyTo.Uri;
+                        createSessionRespMsg.Headers.MessageId = new UniqueId();
+                        createSessionRespMsg.Headers.RelatesTo = msg.Headers.MessageId;
 
-                    var clientUri = new RabbitMQTaskQueueUri(msg.Headers.ReplyTo.Uri.ToString());
-                    var createSessionReq = msg.GetBody<CreateSessionRequest>();
-                    IRabbitMQReader reader = null;
-                    try
-                    {
-                        var connFactory = Binding.CreateConnectionFactory(clientUri.Host, clientUri.Port);
-
-                        var setup = new RabbitMQReaderSetup
+                        var clientUri = new RabbitMQTaskQueueUri(msg.Headers.ReplyTo.Uri.ToString());
+                        var createSessionReq = msg.GetBody<CreateSessionRequest>();
+                        IRabbitMQReader reader = null;
+                        try
                         {
-                            CancelToken = ConcurrentOperationManager.Token,
-                            ConnectionFactory = connFactory,
-                            DeleteQueueOnClose = true,
-                            Exchange = Binding.Exchange,
-                            IsDurable = false,
-                            MaxPriority = null,
-                            Options = Binding.ReaderOptions,
-                            QueueName = localUri.QueueName,
-                            QueueTimeToLive = Binding.ReplyQueueTimeToLive,
-                            Timeout = timer.RemainingTime,
-                        };
-                        setup.QueueArguments = new Dictionary<string, object>();
-                        setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
-                        setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+                            var connFactory = Binding.CreateConnectionFactory(clientUri.Host, clientUri.Port);
 
-                        reader = Binding.QueueReaderWriterFactory.CreateReader(setup);
-                        _writer.Enqueue(Binding.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
-                        return (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader);
-                    }
-                    catch
-                    {
-                        DisposeHelper.DisposeIfNotNull(reader);
-                        throw;
+                            var setup = new RabbitMQReaderSetup
+                            {
+                                CancelToken = ConcurrentOperationManager.Token,
+                                ConnectionFactory = connFactory,
+                                DeleteQueueOnClose = true,
+                                Exchange = Binding.Exchange,
+                                IsDurable = false,
+                                MaxPriority = null,
+                                Options = Binding.ReaderOptions,
+                                QueueName = localUri.QueueName,
+                                QueueTimeToLive = Binding.ReplyQueueTimeToLive,
+                                Timeout = timer.RemainingTime,
+                            };
+                            setup.QueueArguments = new Dictionary<string, object>();
+                            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.IsTaskInputQueue, false);
+                            setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
+
+                            reader = Binding.QueueReaderWriterFactory.CreateReader(setup);
+                            _writer.Enqueue(Binding.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
+                            return (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader);
+                        }
+                        catch
+                        {
+                            DisposeHelper.DisposeIfNotNull(reader);
+                            throw;
+                        }
                     }
                 }
-            }
-            finally
-            {
-                DisposeHelper.DisposeIfNotNull(msg);
+                catch(Exception e)
+                {
+                    timer.ThrowIfNoTimeRemaining();
+                    TraceError(e.ToString(), GetType());
+                }
+                finally
+                {
+                    DisposeHelper.DisposeIfNotNull(msg);
+                }
             }
         }
 
