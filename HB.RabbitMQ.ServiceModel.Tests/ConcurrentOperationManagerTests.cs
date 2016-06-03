@@ -50,22 +50,14 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         [Fact]
         public void DisposeBlocksUntilAllOperationsDisposedTest()
         {
-            var delay = TimeSpan.FromSeconds(15);
             var op = ConcurrentOperationManager.TrackOperation();
-            using (var waitEvent = new ManualResetEventSlim())
-            {
-                StartNewTask(() =>
-                {
-                    waitEvent.Set();
-                    Thread.Sleep(delay);
-                    op.Dispose();
-                });
-                waitEvent.Wait();
-                var timer = Stopwatch.StartNew();
-                ConcurrentOperationManager.Dispose();
-                timer.Stop();
-                Assert.True(timer.Elapsed >= delay, $"Elapsed={timer.Elapsed}, delay={delay}");
-            }
+            var disposeTask = StartNewTask(ConcurrentOperationManager.Dispose);
+            Assert.False(disposeTask.IsCompleted);
+            Thread.Sleep(TimeSpan.FromSeconds(15));
+            Assert.False(disposeTask.IsCompleted);
+            op.Dispose();
+            Thread.Sleep(TimeSpan.FromSeconds(.1));//will give it 100 msec to allow it to finish.
+            Assert.True(disposeTask.IsCompleted);
         }
 
         [Fact]
