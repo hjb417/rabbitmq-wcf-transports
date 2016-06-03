@@ -101,6 +101,9 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
             closeServerTask.Wait(_serverCloseTimeOut);
             timer.Stop();
 
+            //all server objects should be closed.
+            Assert.All(Server.GetStates(), s => Assert.True(CommunicationState.Closed == s.State, $"Server object of type [{s.Type}] is {s.State} but should be closed."));
+
             //service should have closed w/o error.
             Assert.True(closeServerTask.IsCompleted);
             Assert.False(closeServerTask.IsFaulted);

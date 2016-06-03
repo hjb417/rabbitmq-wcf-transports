@@ -56,7 +56,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         public virtual Uri Via { get { return null; } }
         protected abstract IRabbitMQReader QueueReader { get; }
         public EndpointAddress RemoteAddress { get { return _remoteAddress; } }
-        protected bool InputSessionClosingRequestReceived { get; private set; }
 
         protected bool CloseSessionRequestReceived
         {
@@ -77,7 +76,6 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             CloseSessionRequestReceived = false;
-            InputSessionClosingRequestReceived = false;
             base.OnOpen(timeoutTimer.RemainingTime);
         }
 
@@ -204,13 +202,17 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             {
                 while (true)
                 {
-                    if (State != CommunicationState.Opened)
+                    switch(State)
                     {
-                        return null;
+                        case CommunicationState.Opened:
+                        case CommunicationState.Closing:
+                            break;
+                        default:
+                            return null;
                     }
                     //if request from other endpoint received indicating that it's closing,
                     //then close the reader when the message count drops to zero.
-                    if (CloseSessionRequestReceived || InputSessionClosingRequestReceived)
+                    if (CloseSessionRequestReceived)
                     {
                         var queueStatus = QueueReader.QueryQueue(timer.RemainingTime, ConcurrentOperationManager.Token);
                         if (queueStatus.MessageCount == 0)
@@ -231,10 +233,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                         CloseSessionRequestReceived = true;
                         msg = null;
                     }
-                    else if (msg.Headers.Action == Actions.InputSessionClosingRequest)
+                    if (msg.Headers.Action == Actions.CloseSessionResponse)
                     {
-                        InputSessionClosingRequestReceived = true;
-                        msg = null;
+                        return msg;
                     }
                     return msg;
                 }
@@ -265,6 +266,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 
         public void CloseOutputSession(TimeSpan timeout)
         {
+            CloseOutputSession(timeout, false);
+        }
+
+        protected void CloseOutputSession(TimeSpan timeout, bool waitForResponse)
+        {
             MethodInvocationTrace.Write();
             if (ConcurrentOperationManager == null)
             {
@@ -276,7 +282,20 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             using (var msg = Message.CreateMessage(MessageVersion.Default, Actions.CloseSessionRequest, new CloseSessionRequest()))
             {
                 Send(msg, timeoutTimer.RemainingTime);
-                //Receive(timeoutTimer.RemainingTime);
+                while(waitForResponse && !CloseSessionRequestReceived)
+                {
+                    using (var resp = Receive(timeoutTimer.RemainingTime))
+                    {
+                        if (resp == null)
+                        {
+                            continue;
+                        }
+                        if(resp.Headers.Action == Actions.CloseSessionResponse)
+                        {
+                            return;
+                        }
+                    }
+                }
             }
         }
 

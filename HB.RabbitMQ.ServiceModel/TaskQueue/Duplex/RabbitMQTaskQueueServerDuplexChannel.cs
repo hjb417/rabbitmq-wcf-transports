@@ -52,24 +52,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             bool isAborting = closeReason == CloseReasons.Abort;
             using (ConcurrentOperationManager.TrackOperation())
-            using (var inputSessionClosingReq = Message.CreateMessage(MessageVersion.Default, Actions.InputSessionClosingRequest, new InputSessionClosingRequest()))
             {
                 try
                 {
-                    Send(inputSessionClosingReq, isAborting ? TimeSpan.FromSeconds(30) : timeoutTimer.RemainingTime);
-                    bool respReceived = false;
-                    while(!respReceived)
-                    {
-                        var msg = QueueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
-                        if(msg == null)
-                        {
-                            continue;
-                        }
-                        if(msg.Headers.Action == Actions.InputSessionClosingResponse)
-                        {
-                            respReceived = true;
-                        }
-                    }
+                    CloseOutputSession(isAborting ? TimeSpan.FromSeconds(30) : timeoutTimer.RemainingTime, true);
                 }
                 catch (Exception e)
                 {
@@ -78,12 +64,12 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     {
                         rethrow = false;
                     }
-                    if(e is RemoteQueueDoesNotExistException)
+                    if (e is RemoteQueueDoesNotExistException)
                     {
                         rethrow = false;
                     }
                     Trace.TraceWarning("[{2}] Failed to notify the endpoint [{0}] that the queue is closing. {1}", _remoteUri, e, GetType());
-                    if(rethrow)
+                    if (rethrow)
                     {
                         throw;
                     }

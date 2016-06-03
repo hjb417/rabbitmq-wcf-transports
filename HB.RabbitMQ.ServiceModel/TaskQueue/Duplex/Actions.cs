@@ -23,12 +23,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
     internal static class Actions
     {
-        private const string Prefix = "HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Actions.CreateSessionRequest";
+        private const string Prefix = "HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Actions.";
         public const string CreateSessionRequest = Prefix + "CreateSessionRequest";
         public const string CreateSessionResponse = Prefix + "CreateSessionResponse";
         public const string CloseSessionRequest = Prefix + "CloseSessionRequest";
-        public const string InputSessionClosingRequest = Prefix + "InputSessionClosingRequest";
-        public const string InputSessionClosingResponse = Prefix + "InputSessionClosingResponse";
+        public const string CloseSessionResponse = Prefix + "CloseSessionResponse";
         public const string KeepAlive = Prefix + "KeepAlive";
     }
 }

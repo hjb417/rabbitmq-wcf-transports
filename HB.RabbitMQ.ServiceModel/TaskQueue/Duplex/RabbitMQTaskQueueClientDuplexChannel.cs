@@ -104,9 +104,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         {
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
-            if(InputSessionClosingRequestReceived)
+            if (CloseSessionRequestReceived)
             {
-                using (var msg = Message.CreateMessage(MessageVersion.Default, Actions.InputSessionClosingResponse, new InputSessionClosingResponse()))
+                using (var msg = Message.CreateMessage(MessageVersion.Default, Actions.CloseSessionResponse, new CloseSessionResponse()))
                 {
                     try
                     {
@@ -136,7 +136,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     }
                 }
             }
-            if (!CloseSessionRequestReceived)
+            else
             {
                 try
                 {
@@ -145,7 +145,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                         ? TimeSpanHelper.Max(timeoutTimer.RemainingTime, TimeSpan.FromSeconds(30))
                         : timeoutTimer.RemainingTime;
 
-                    CloseOutputSession(closeSessionTimeout);
+                    CloseOutputSession(closeSessionTimeout, false);
                 }
                 catch (Exception e) when (e is TimeoutException || e is ObjectDisposedException || e is OperationCanceledException)
                 {
@@ -167,8 +167,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
             using (ConcurrentOperationManager.TrackOperation())
             {
-                if (InputSessionClosingRequestReceived)
+                if (CloseSessionRequestReceived)
                 {
+                    //TODO: Shouldn't we just always call OnFaulted and throw?
                     var queueStatus = _queueReader.QueryQueue(timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
                     //Fault the channel if there are no more messages to read.
                     if (queueStatus.MessageCount == 0)
@@ -188,7 +189,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             var msg = base.Receive(timeout);
 
             //if the server closed the session.
-            if ((msg == null) && InputSessionClosingRequestReceived)
+            if ((msg == null) && CloseSessionRequestReceived)
             {
                 OnFaulted();
                 throw new CommunicationException("The remote channel closed the session.");
