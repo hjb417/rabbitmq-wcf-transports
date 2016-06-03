@@ -55,7 +55,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             {
                 try
                 {
-                    CloseOutputSession(isAborting ? TimeSpan.FromSeconds(30) : timeoutTimer.RemainingTime, true);
+                    CloseOutputSession(isAborting ? TimeSpan.FromSeconds(30) : timeoutTimer.RemainingTime, !isAborting);
                 }
                 catch (Exception e)
                 {
