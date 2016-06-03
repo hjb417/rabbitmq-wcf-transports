@@ -50,23 +50,17 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         {
             MethodInvocationTrace.Write();
             var timeoutTimer = TimeoutTimer.StartNew(timeout);
+            bool isAborting = closeReason == CloseReasons.Abort;
             using (ConcurrentOperationManager.TrackOperation())
             using (var inputSessionClosingReq = Message.CreateMessage(MessageVersion.Default, Actions.InputSessionClosingRequest, new InputSessionClosingRequest()))
             {
                 try
                 {
-                    var sendTimeout = timeoutTimer.RemainingTime;
-                    if (closeReason == CloseReasons.Abort)
-                    {
-                        sendTimeout = TimeSpanHelper.Max(sendTimeout, TimeSpan.FromSeconds(30));
-                    }
-                    var inputSessionTimeoutTimer = TimeoutTimer.StartNew(sendTimeout);
-                    Send(inputSessionClosingReq, inputSessionTimeoutTimer.RemainingTime);
+                    Send(inputSessionClosingReq, isAborting ? TimeSpan.FromSeconds(30) : timeoutTimer.RemainingTime);
                     bool respReceived = false;
                     while(!respReceived)
                     {
-                        inputSessionTimeoutTimer.ThrowIfNoTimeRemaining();
-                        var msg = QueueReader.Dequeue(Binding, MessageEncoderFactory, inputSessionTimeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
+                        var msg = QueueReader.Dequeue(Binding, MessageEncoderFactory, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
                         if(msg == null)
                         {
                             continue;
