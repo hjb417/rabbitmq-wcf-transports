@@ -131,6 +131,10 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 
             WaitForServerToReceiveMessage();
 
+            //HACK: The interval between the TryReceive is between 4-5 seconds.. I can't explain it
+            //WCF is calling TryReceive to pull in messages.
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+
             //all server objects should be open.
             Assert.All(Server.GetStates<IChannelListener>(), s => Assert.Equal(CommunicationState.Opened, s.State));
             Assert.All(Server.GetStates<IChannel>(), s => Assert.Equal(CommunicationState.Closed, s.State)); // <-- fails here

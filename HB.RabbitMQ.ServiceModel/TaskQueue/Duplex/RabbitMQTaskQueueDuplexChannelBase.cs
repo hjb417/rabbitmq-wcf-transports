@@ -228,14 +228,11 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     }
                     //RabbitMQTaskQueueAppDomainProtocolHandler.ReportMessageReceived(ListenerChannelSetup);
                     msg.Headers.To = BindingContext.ListenUriBaseAddress;
-                    if (msg.Headers.Action == Actions.CloseSessionRequest)
+                    if(msg.Headers.Action == Actions.CloseSessionRequest)
                     {
+                        msg.Close();
                         CloseSessionRequestReceived = true;
                         msg = null;
-                    }
-                    if (msg.Headers.Action == Actions.CloseSessionResponse)
-                    {
-                        return msg;
                     }
                     return msg;
                 }

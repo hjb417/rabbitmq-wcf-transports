@@ -26,6 +26,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         {
             if(disposing)
             {
+                Trace.Flush();
                 if (_xunitTraceListener != null)
                 {
                     Trace.Listeners.Remove(_xunitTraceListener);
