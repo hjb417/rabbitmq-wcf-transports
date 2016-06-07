@@ -48,6 +48,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             public const string AutomaticRecoveryEnabled = "true";
             public const string RequestedHeartbeat = "00:03";
             public const string UseBackgroundThreadsForIO = "true";
+            public const string TransactionFlow = "true";
         }
     }
 }

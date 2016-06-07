@@ -27,10 +27,19 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex.TestServices.LongProce
         [OperationBehavior(TransactionScopeRequired = true)]
         public void ProcessStuff(string stuff)
         {
-            Interlocked.Increment(ref _processingStuffCounter);
-            Thread.Sleep(SleepTime);
-            Thread.Sleep(TimeSpan.FromSeconds(1));
-            Interlocked.Increment(ref _processStuffCounter);
+            try
+            {
+                Interlocked.Increment(ref _processingStuffCounter);
+                Thread.Sleep(SleepTime);
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                Interlocked.Increment(ref _processStuffCounter);
+                return;
+            }
+            catch(Exception e)
+            {
+                e.GetHashCode();
+                throw;
+            }
         }
 
         [OperationBehavior(TransactionScopeRequired = true)]

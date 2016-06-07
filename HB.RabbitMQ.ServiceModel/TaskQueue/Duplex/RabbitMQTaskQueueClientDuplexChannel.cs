@@ -21,10 +21,12 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
+using RabbitMQ.Client;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
@@ -36,6 +38,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         private IRabbitMQReader _queueReader;
         private readonly BufferManager _bufferMgr;
         private RabbitMQTaskQueueUri _remoteSessionUri;
+        private string _abortTopic;
+        private string _abortTopicExchange;
 
         public RabbitMQTaskQueueClientDuplexChannel(BindingContext context, RabbitMQTaskQueueDuplexChannelFactory<TChannel> channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, EndpointAddress remoteAddress, BufferManager bufferManager)
             : base(context, channelManager, binding, remoteAddress, localAddress)
@@ -58,6 +62,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             using (ConcurrentOperationManager.TrackOperation())
             using (var createSessionReqMsg = Message.CreateMessage(MessageVersion.Default, Actions.CreateSessionRequest, new CreateSessionRequest()))
             {
+                _abortTopic = null;
+                _abortTopicExchange = null;
                 createSessionReqMsg.Headers.ReplyTo = LocalAddress;
                 createSessionReqMsg.Headers.From = LocalAddress;
                 createSessionReqMsg.Headers.To = RemoteAddress.Uri;
@@ -89,6 +95,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     using (var msg = _queueReader.Dequeue(Binding, MessageEncoderFactory, timer.RemainingTime, ConcurrentOperationManager.Token))
                     {
                         var response = msg.GetBody<CreateSessionResponse>();
+                        _abortTopic = response.AbortTopic;
+                        _abortTopicExchange = response.AbortTopicExchange;
                         _remoteSessionUri = new RabbitMQTaskQueueUri(msg.Headers.ReplyTo.Uri.ToString());
                     }
                 }
@@ -142,10 +150,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                 {
                     //when aborting and timeout=zero, set timeout to 30s to try to notify server that client is aborting.
                     var closeSessionTimeout = (closeReason == CloseReasons.Abort)
-                        ? TimeSpanHelper.Max(timeoutTimer.RemainingTime, TimeSpan.FromSeconds(30))
-                        : timeoutTimer.RemainingTime;
-
-                    CloseOutputSession(closeSessionTimeout, false);
+                        ? TimeoutTimer.StartNew(TimeSpanHelper.Max(timeoutTimer.RemainingTime, TimeSpan.FromSeconds(30)))
+                        : TimeoutTimer.StartNew(timeoutTimer.RemainingTime);
+                    if (closeReason == CloseReasons.Abort)
+                    {
+                        QueueWriter.Publish(_abortTopicExchange, _abortTopic, new MemoryStream(), closeSessionTimeout.RemainingTime, ConcurrentOperationManager.Token);
+                    }
+                    CloseOutputSession(closeSessionTimeout.RemainingTime, false);
                 }
                 catch (Exception e) when (e is TimeoutException || e is ObjectDisposedException || e is OperationCanceledException)
                 {

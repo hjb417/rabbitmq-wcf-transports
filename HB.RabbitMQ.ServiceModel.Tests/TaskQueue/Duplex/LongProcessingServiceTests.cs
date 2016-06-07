@@ -16,7 +16,6 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
         private bool _unloadClientAppDomain = true;
         private bool _unloadServerAppDomain = true;
 
-        private TimeSpan _processSleepTime = TimeSpan.FromSeconds(3);
         private readonly TimeSpan _serverCloseTimeOut = TimeSpan.FromSeconds(6);
 
         //private readonly TimeSpan _processSleepTime = TimeSpan.FromMinutes(3);
@@ -31,15 +30,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
         protected LongProcessingServiceTests(BindingTypes bindingType, ITestOutputHelper outputHelper)
             : base(outputHelper)
         {
-            Server = ServiceFactory.CreateServer<ILongProcessingService, LongProcessingService>(bindingType);
-            Server.Service.SleepTime = _processSleepTime;
-            
+            Server = ServiceFactory.CreateServer<ILongProcessingService, LongProcessingService>(bindingType, false);
+            Server.Service.SleepTime = TimeSpan.FromSeconds(3);
+
             Uri clientUri = null;
-            if(bindingType == BindingTypes.DuplexMsmq)
+            if (bindingType == BindingTypes.DuplexMsmq)
             {
                 _clientQueueName = typeof(ILongProcessingService).Name + "_Client-" + Guid.NewGuid();
                 MessageQueue.Create(@".\private$\" + _clientQueueName);
-                clientUri = new Uri("net.msmq://localhost/private/"+ _clientQueueName);
+                clientUri = new Uri("net.msmq://localhost/private/" + _clientQueueName);
             }
             Client = ServiceFactory.CreateClient<LongProcessingServiceClient>(bindingType, Server.ServiceUri, clientUri);
         }
@@ -67,7 +66,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
                     }
                     catch { }
                 }
-                if(_clientQueueName != null)
+                if (_clientQueueName != null)
                 {
                     MessageQueue.Delete(@".\private$\" + _clientQueueName);
                 }
@@ -145,7 +144,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
             //service should still be running.
             Assert.True(closeServerTask.IsCompleted);
 
-            Assert.Equal(1, Server.Service.ProcessStuffCounter);            
+            Assert.Equal(1, Server.Service.ProcessStuffCounter);
 
             //all server objects should be closed.
             Assert.All(Server.GetStates(), s => Assert.Equal(CommunicationState.Closed, s.State));
@@ -220,9 +219,15 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
         }
 
         [Fact]
+        //I think this test is failing because the RabbitMQ version is not processing results asyncronosuly.
+        //It's waiting for the method ProcessStuff to finish before aborting.
         public void ClientAbortServerAbortTest()
         {
+            Server.Service.SleepTime = TimeSpan.FromDays(15);
+
             Client.ProcessStuff(Guid.NewGuid().ToString());
+            Client.ProcessStuff(Guid.NewGuid().ToString());
+
             var abortClientTask = StartNewTask(Client.Abort);
             Assert.True(abortClientTask.Wait(_clientAbortTime));
             Assert.False(abortClientTask.IsFaulted);
@@ -230,9 +235,11 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 
             WaitForServerToReceiveMessage();
 
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+
             //all server objects should be open.
             Assert.All(Server.GetStates<IChannelListener>(), s => Assert.Equal(CommunicationState.Opened, s.State));
-            Assert.All(Server.GetStates<IChannel>(), s => Assert.Equal(CommunicationState.Closed, s.State));
+            Assert.All(Server.GetStates<IChannel>(), s => Assert.True(CommunicationState.Closed == s.State, $"Object of type [{s.Type}] is [{s.State}]."));
 
             var timer = Stopwatch.StartNew();
             var abortServerTask = StartNewTask(Server.Abort);
@@ -251,6 +258,9 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
 
             //service method should not have ran to completion.
             Assert.Equal(0, Server.Service.ProcessStuffCounter);
+
+            //it should only be processing one request at a time.
+            Assert.Equal(1, Server.Service.ProcessingStuffCounter);
 
             //the abort should return almost immediately.
             Assert.True(timer.Elapsed <= _serverAbortTime);
@@ -317,8 +327,12 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.Duplex
             Assert.True(closeClientTask.IsCompleted);
             Assert.False(closeClientTask.IsFaulted);
 
+
+            //add some delay to allow the channels to close for rabbitmq.
+            Thread.Sleep(TimeSpan.FromSeconds(3));
+
+            Assert.All(Server.GetStates<IChannel>(), s => Assert.True(s.State == CommunicationState.Closed, $"The communication object [{s.Type}] is in the [{s.State}] state."));
             Assert.Equal(1, Server.GetStates<IChannel>().Count());
-            Assert.All(Server.GetStates<IChannel>(), s => Assert.Equal(CommunicationState.Closed, s.State));
         }
 
         #endregion

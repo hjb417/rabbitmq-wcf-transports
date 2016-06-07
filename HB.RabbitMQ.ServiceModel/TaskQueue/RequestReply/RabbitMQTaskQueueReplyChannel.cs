@@ -77,8 +77,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
         {
             MethodInvocationTrace.Write();
-            base.OnClose(timeout, closeReason);
-            DisposeHelper.DisposeIfNotNull(_queueReader);
+            try
+            {
+                base.OnClose(timeout, closeReason);
+            }
+            finally
+            {
+                DisposeHelper.DisposeIfNotNull(_queueReader);
+            }
         }
 
         public IAsyncResult BeginReceiveRequest(TimeSpan timeout, AsyncCallback callback, object state)

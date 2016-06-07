@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Security;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
@@ -73,7 +74,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         {
             var msmqBinding = new MsmqTransportBindingElement();
             msmqBinding.MsmqTransportSecurity.MsmqAuthenticationMode = MsmqAuthenticationMode.None;
-            msmqBinding.MsmqTransportSecurity.MsmqProtectionLevel = System.Net.Security.ProtectionLevel.None;
+            msmqBinding.MsmqTransportSecurity.MsmqProtectionLevel = ProtectionLevel.None;
             msmqBinding.UseActiveDirectory = false;
             msmqBinding.ExactlyOnce = false;
 

@@ -98,6 +98,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public bool AutomaticRecoveryEnabled { get; set; }
         public TimeSpan RequestedHeartbeat { get; set; }
         public bool UseBackgroundThreadsForIO { get; set; }
+        public bool TransactionFlow { get; set; }
 
         internal BufferManager CreateBufferManager()
         {
@@ -112,7 +113,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         public override BindingElementCollection CreateBindingElements()
         {
             var bindings = base.CreateBindingElements();
-            bindings.Add(new TransactionFlowBindingElement { AllowWildcardAction = true, TransactionProtocol = TransactionProtocol.OleTransactions });
+            if (TransactionFlow)
+            {
+                bindings.Add(new TransactionFlowBindingElement { AllowWildcardAction = true, TransactionProtocol = TransactionProtocol.OleTransactions });
+            }
             bindings.Add(new RabbitMQTransportBindingElement(this));
             return bindings;
         }
@@ -140,7 +144,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             connFactory.ClientProperties.Add(ReaderQueueArguments.AppDomainFriendlyName, AppDomain.CurrentDomain.FriendlyName);
             connFactory.ClientProperties.Add(ReaderQueueArguments.AppDomainFriendlId, AppDomain.CurrentDomain.Id);
 #if DEBUG
-            connFactory.ClientProperties.Add(ReaderQueueArguments.Stacktrace, Environment.StackTrace);
+            //HACK: was getting frame_too_large in server logs because the stack trace string was too long
+            var strackTrace = Environment.StackTrace;
+            connFactory.ClientProperties.Add(ReaderQueueArguments.Stacktrace, strackTrace.Substring(0, Math.Min(strackTrace.Length, 3000)));
 #endif
             if (ReaderOptions.IncludeProcessCommandLineInQueueArguments)
             {

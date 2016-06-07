@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
 using HB.RabbitMQ.ServiceModel.Throttling;
@@ -40,32 +41,23 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         [Fact]
         public void WaitForMessageReturnsTrueWhenMessageIsAvailableTest()
         {
-            var connFactory = Substitute.For<IConnectionFactory>();
-            var conn = Substitute.For<IConnection>();
-            var model = Substitute.For<IModel>();
-            uint msgCount = 0;
-
-            connFactory.CreateConnection().Returns(conn);
-            connFactory.CreateConnection(string.Empty).ReturnsForAnyArgs(conn);
-            conn.CreateModel().Returns(model);
-            model.QueueDeclare(null, false, false, false, null).ReturnsForAnyArgs(new QueueDeclareOk(string.Empty, 0, 0));
-            model.MessageCount(null).ReturnsForAnyArgs(x => Thread.VolatileRead(ref msgCount));
-            model.QueueDeclarePassive(null).ReturnsForAnyArgs(x => new QueueDeclareOk(string.Empty, Thread.VolatileRead(ref msgCount), 0));
-
             var delay = TimeSpan.FromSeconds(15);
+
+            var queueName = Guid.NewGuid().ToString();
 
             var setup = new RabbitMQReaderSetup
             {
-                ConnectionFactory = connFactory,
-                Exchange = null,
-                QueueName = null,
+                ConnectionFactory = new ConnectionFactory(),
+                QueueName = queueName,
+                Exchange= PredeclaredExchangeNames.Direct,
                 IsDurable = false,
                 DeleteQueueOnClose = true,
                 QueueTimeToLive = TimeSpan.FromMinutes(20),
                 Options = new RabbitMQReaderOptions(),
             };
             using (var rdr = new RabbitMQReader(setup, false))
-            using (var timer = new Timer(state => Thread.VolatileWrite(ref msgCount, 1), null, delay, TimeSpan.Zero))
+            using (var writer = new RabbitMQWriter(new RabbitMQWriterSetup { ConnectionFactory = new ConnectionFactory() }, false))
+            using (var timer = new Timer(state => writer.Publish(PredeclaredExchangeNames.Direct, queueName, new MemoryStream(), TimeSpan.MaxValue, CancellationToken.None), null, delay, TimeSpan.Zero))
             {
                 var stopwatch = Stopwatch.StartNew();
                 var gotMsg = rdr.WaitForMessage(TimeSpan.FromSeconds(90), CancellationToken.None);

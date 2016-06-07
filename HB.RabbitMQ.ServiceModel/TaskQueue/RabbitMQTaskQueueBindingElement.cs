@@ -124,6 +124,13 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             set { base[BindingPropertyNames.DeleteOnClose] = value; }
         }
 
+        [ConfigurationProperty(BindingPropertyNames.TransactionFlow, DefaultValue = DefaultValues.TransactionFlow)]
+        public bool TransactionFlow
+        {
+            get { return ((bool)base[BindingPropertyNames.TransactionFlow]); }
+            set { base[BindingPropertyNames.TransactionFlow] = value; }
+        }
+
         [ConfigurationProperty(BindingPropertyNames.MaxPriority, DefaultValue = DefaultValues.MaxPriority)]
         public int? MaxPriority
         {
@@ -199,6 +206,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             rb.DeleteOnClose = DeleteOnClose;
             rb.MaxPriority = MaxPriority;
             rb.IsDurable = IsDurable;
+            rb.TransactionFlow = TransactionFlow;
             WriterOptions.ApplyConfiguration(rb.WriterOptions);
             ReaderOptions.ApplyConfiguration(rb.ReaderOptions);
         }

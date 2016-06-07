@@ -70,6 +70,20 @@ namespace HB.RabbitMQ.ServiceModel
             }
         }
 
+        public void Publish(string exchange, string queueName, Stream messageStream, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            MethodInvocationTrace.Write();
+            using (_invocationTracker.TrackOperation())
+            using (var opCancelToken = CancellationTokenSource.CreateLinkedTokenSource(_invocationTracker.Token, cancelToken))
+            {
+                var timeoutTimer = TimeoutTimer.StartNew(timeout);
+                var msgProps = _conn.CreateBasicProperties(timeoutTimer.RemainingTime, opCancelToken.Token);
+
+                msgProps.Persistent = true;
+                _conn.BasicPublish(exchange, queueName, false, null, messageStream, timeoutTimer.RemainingTime, opCancelToken.Token);
+            }
+        }
+
         public void Enqueue(string exchange, string queueName, Stream messageStream, TimeSpan timetoLive, TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();

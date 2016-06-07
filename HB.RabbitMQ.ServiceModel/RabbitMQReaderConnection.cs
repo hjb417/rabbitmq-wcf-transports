@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace HB.RabbitMQ.ServiceModel
 {
@@ -93,6 +94,49 @@ namespace HB.RabbitMQ.ServiceModel
             Debug.WriteLine("{0}-{1}: Bound to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, _setup.QueueName);
         }
 
+        public EventingBasicConsumer CreateEventingBasicConsumer(string routingKey, string exchange, bool durable, bool autoDelete, IDictionary<string, object> arguments, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            MethodInvocationTrace.Write();
+            return PerformAction(model =>
+            {
+                var args = new Dictionary<string, object>();
+                if (_setup.Options.IncludeProcessCommandLineInQueueArguments)
+                {
+                    args.Add(ReaderQueueArguments.CommandLine, Environment.CommandLine);
+                }
+                args.Add(ReaderQueueArguments.ProcessStartTime, ((DateTimeOffset)_proc.StartTime).ToString());
+                args.Add(ReaderQueueArguments.ProcessId, _proc.Id);
+                args.Add(ReaderQueueArguments.MachineName, Environment.MachineName);
+                args.Add(ReaderQueueArguments.CreationTime, DateTimeOffset.Now.ToString());
+                args.Add(ReaderQueueArguments.UserName, Environment.UserName);
+                args.Add(ReaderQueueArguments.UserDomainName, Environment.UserDomainName);
+                args.Add(ReaderQueueArguments.AppDomainFriendlyName, AppDomain.CurrentDomain.FriendlyName);
+                args.Add(ReaderQueueArguments.AppDomainFriendlId, AppDomain.CurrentDomain.Id);
+#if DEBUG
+                args.Add(ReaderQueueArguments.Stacktrace, Environment.StackTrace);
+#endif
+
+                var autoDeleteQueue = !_setup.IsDurable;
+                var queueTtl = _setup.QueueTimeToLive;
+                if (autoDeleteQueue && !queueTtl.HasValue)
+                {
+                    queueTtl = TimeSpan.FromMinutes(20);
+                }
+                var appIdentity = AppDomain.CurrentDomain.ApplicationIdentity;
+                args.Add(ReaderQueueArguments.ApplicationIdentity, (appIdentity == null) ? string.Empty : appIdentity.ToString());
+                if (queueTtl.HasValue)
+                {
+                    args.Add("x-expires", (int)queueTtl.Value.TotalMilliseconds);
+                }
+                model = CreateModel();
+                var queue = model.QueueDeclare(Guid.NewGuid().ToString("N"), durable, false, autoDelete, arguments);
+                model.QueueBind(queue, exchange, routingKey);
+                var consumer = new EventingBasicConsumer(model);
+                model.BasicConsume(queue, true, consumer);
+                return consumer;
+            }, timeout, cancelToken);
+        }
+
         public BasicGetResult BasicGet(TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();
@@ -119,6 +163,12 @@ namespace HB.RabbitMQ.ServiceModel
         public uint MessageCount(TimeSpan timeout, CancellationToken cancelToken)
         {
             return PerformAction(model => model.MessageCount(_setup.QueueName), timeout, cancelToken);
+        }
+
+        public string BasicConsume(string queue, bool noAck, IBasicConsumer consumer, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            MethodInvocationTrace.Write();
+            return PerformAction(model => model.BasicConsume(queue, noAck, consumer), timeout, cancelToken);
         }
     }
 }

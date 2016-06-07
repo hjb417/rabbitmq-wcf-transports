@@ -26,5 +26,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages
     [DataContract]
     internal sealed class CreateSessionResponse
     {
+        [DataMember]
+        public string AbortTopic { get; set; }
+
+        [DataMember]
+        public string AbortTopicExchange { get; set; }
     }
 }

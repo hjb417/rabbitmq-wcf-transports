@@ -60,7 +60,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         protected bool CloseSessionRequestReceived
         {
             get { return _closeSessionRequestReceived; }
-            private set
+            set
             {
                 _closeSessionRequestReceived = value;
                 var reader = QueueReader;
@@ -272,6 +272,10 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             if (ConcurrentOperationManager == null)
             {
                 //the session was never opened.
+                return;
+            }
+            if (CloseSessionRequestReceived)
+            {
                 return;
             }
             var timeoutTimer = TimeoutTimer.StartNew(timeout);

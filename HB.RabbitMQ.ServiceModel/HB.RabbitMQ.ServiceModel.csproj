@@ -169,6 +169,7 @@
     <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueDuplexChannelListener.cs" />
     <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueServerDuplexChannel.cs" />
     <Compile Include="TaskQueue\Duplex\RabbitMQTaskQueueDuplexChannelBase.cs" />
+    <Compile Include="TaskQueue\Duplex\Topics.cs" />
     <Compile Include="TaskQueue\MessageConfirmationModes.cs" />
     <Compile Include="TaskQueue\NoOpDequeueThrottlerFactory.cs" />
     <Compile Include="TaskQueue\RabbitMQTaskQueueBindingElement+DefaultValues.cs" />

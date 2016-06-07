@@ -185,6 +185,11 @@ namespace HB.RabbitMQ.ServiceModel
             }
         }
 
+        protected IModel CreateModel()
+        {
+            return _modelAndConnection.Item2.CreateModel();
+        }
+
         public void BasicAck(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();
@@ -192,6 +197,11 @@ namespace HB.RabbitMQ.ServiceModel
         }
 
         public void BasicPublish(string exchange, string queueName, IBasicProperties messageProperties, Stream messageStream, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            BasicPublish(exchange, queueName, true, messageProperties, messageStream, timeout, cancelToken);
+        }
+
+        public void BasicPublish(string exchange, string queueName, bool mandatory, IBasicProperties messageProperties, Stream messageStream, TimeSpan timeout, CancellationToken cancelToken)
         {
             MethodInvocationTrace.Write();
             var timer = TimeoutTimer.StartNew(timeout);
@@ -229,7 +239,7 @@ namespace HB.RabbitMQ.ServiceModel
                     model.BasicNacks += nackCallback;
 
                     Debug.WriteLine("{0}-{1}: Publishing message to queue [{2}]", DateTime.Now, Thread.CurrentThread.ManagedThreadId, queueName);
-                    model.BasicPublish(exchange, queueName, true, messageProperties, message);
+                    model.BasicPublish(exchange, queueName, mandatory, messageProperties, message);
                     if (confirmEvent.Wait(timer.RemainingTime.ToMillisecondsTimeout(), cancelToken))
                     {
                         confirmEvent.Dispose();

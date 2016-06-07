@@ -19,24 +19,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-using System;
-using System.Threading;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
-namespace HB.RabbitMQ.ServiceModel
+namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
-    internal interface IRabbitMQReader : IDisposable
+    internal static class Topics
     {
-        string Exchange { get; }
-        string QueueName { get; }
-        void AcknowledgeMessage(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken);
-        void RejectMessage(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken);
-        QueueDeclareOk QueryQueue(TimeSpan timeout, CancellationToken cancelToken);
-        uint MessageCount(TimeSpan timeout, CancellationToken cancelToken);
-        DequeueResult Dequeue(TimeSpan timeout, CancellationToken cancelToken);
-        bool WaitForMessage(TimeSpan timeout, CancellationToken cancelToken);
-        EventingBasicConsumer CreateEventingBasicConsumer(string routingKey, string exchange, TimeSpan timeout, CancellationToken cancelToken);
-        void SoftClose();
+        public const string Prefix = "{F30F253E-8757-4B22-AF16-3EB411096A63}.";
+        public const string RoutingKey = Prefix + "#";
+        public const string ClientClose = Prefix + "{D749623D-D17D-4D4E-ADE6-9BE4AF4C97C1}";
     }
 }

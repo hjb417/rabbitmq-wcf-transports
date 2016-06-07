@@ -52,8 +52,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
         {
             MethodInvocationTrace.Write();
-            DisposeHelper.DisposeIfNotNull(_queueReader);
-            base.OnClose(timeout, closeReason);
+            try
+            {
+                DisposeHelper.DisposeIfNotNull(_queueReader);
+            }
+            finally
+            {
+                base.OnClose(timeout, closeReason);
+            }
         }
 
         protected override void OnOpen(TimeSpan timeout)

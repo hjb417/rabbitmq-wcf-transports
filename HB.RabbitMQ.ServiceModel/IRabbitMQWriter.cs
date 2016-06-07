@@ -28,6 +28,7 @@ namespace HB.RabbitMQ.ServiceModel
     internal interface IRabbitMQWriter : IDisposable
     {
         void Enqueue(string exchange, string queueName, Stream messageStream, TimeSpan timeToLive, TimeSpan timeout, CancellationToken cancelToken);
+        void Publish(string exchange, string queueName, Stream messageStream, TimeSpan timeout, CancellationToken cancelToken);
         void AcknowledgeMessage(ulong deliveryTag, TimeSpan timeout, CancellationToken cancelToken);
     }
 }

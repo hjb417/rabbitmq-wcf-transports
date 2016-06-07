@@ -26,6 +26,7 @@ using System.ServiceModel.Channels;
 using System.Xml;
 using HB.RabbitMQ.ServiceModel.Hosting.TaskQueue;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
+using RabbitMQ.Client.Events;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
@@ -37,6 +38,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         private IRabbitMQWriter _writer;
         private readonly MessageEncoderFactory _msgEncoderFactory;
         private readonly RabbitMQTaskQueueUri _listenUri;
+        private EventingBasicConsumer _clientClosedEvent;
 
         public RabbitMQTaskQueueDuplexChannelListener(BindingContext context, RabbitMQTaskQueueBinding binding)
             : base(context, binding)
@@ -72,6 +74,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             readerSetup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
 
             _reader = Binding.QueueReaderWriterFactory.CreateReader(readerSetup);
+            _clientClosedEvent = _reader.CreateEventingBasicConsumer(Topics.RoutingKey, PredeclaredExchangeNames.Topic, timeoutTimer.RemainingTime, ConcurrentOperationManager.Token);
+            _clientClosedEvent.Received += OnClientClosed;
 
             var writerSetup = new RabbitMQWriterSetup
             {
@@ -84,13 +88,24 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             _writer = Binding.QueueReaderWriterFactory.CreateWriter(writerSetup);
         }
 
+        private void OnClientClosed(object sender, BasicDeliverEventArgs e)
+        {
+            return;
+        }
+
         protected override TChannel OnAcceptChannel(TimeSpan timeout)
         {
             MethodInvocationTrace.Write();
             var timer = TimeoutTimer.StartNew(timeout);
-            var localUri = RabbitMQTaskQueueUri.Create(Uri.Host, Uri.Port, "s" + Guid.NewGuid().ToString("N"));
+            var sessionId = Guid.NewGuid().ToString();
+            var localUri = RabbitMQTaskQueueUri.Create(Uri.Host, Uri.Port, "s" + sessionId);
             var localAddress = new EndpointAddress(localUri);
-            var createSessionResp = new CreateSessionResponse();
+            var abortTopic = Topics.ClientClose + "." + sessionId;
+            var createSessionResp = new CreateSessionResponse
+            {
+                AbortTopic = abortTopic,
+                AbortTopicExchange = PredeclaredExchangeNames.Topic
+            };
             while (true)
             {
                 if (State != CommunicationState.Opened)
@@ -136,8 +151,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                             setup.QueueArguments.Add(TaskQueueReaderQueueArguments.Scheme, Constants.Scheme);
 
                             reader = Binding.QueueReaderWriterFactory.CreateReader(setup);
+                            var channel = (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader, abortTopic, _clientClosedEvent);
                             _writer.Enqueue(Binding.Exchange, clientUri.QueueName, createSessionRespMsg, BufferManager, Binding, _msgEncoderFactory, timer.RemainingTime, timer.RemainingTime, ConcurrentOperationManager.Token);
-                            return (TChannel)(object)new RabbitMQTaskQueueServerDuplexChannel(Context, this, Binding, localAddress, msg.Headers.ReplyTo, BufferManager, reader);
+                            return channel;
                         }
                         catch
                         {
@@ -146,7 +162,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                         }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     timer.ThrowIfNoTimeRemaining();
                     TraceError(e.ToString(), GetType());
@@ -170,9 +186,16 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
         {
             MethodInvocationTrace.Write();
-            base.OnClose(timeout, closeReason);
-            DisposeHelper.DisposeIfNotNull(_reader);
-            DisposeHelper.DisposeIfNotNull(_writer);
+            try
+            {
+                base.OnClose(timeout, closeReason);
+            }
+            finally
+            {
+                DisposeHelper.DisposeIfNotNull(_clientClosedEvent?.Model);
+                DisposeHelper.DisposeIfNotNull(_reader);
+                DisposeHelper.DisposeIfNotNull(_writer);
+            }
         }
     }
 }

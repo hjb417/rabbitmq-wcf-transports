@@ -26,6 +26,7 @@ using System.Threading;
 using HB.RabbitMQ.ServiceModel.TaskQueue;
 using HB.RabbitMQ.ServiceModel.Throttling;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using static HB.RabbitMQ.ServiceModel.Diagnostics.TraceHelper;
 
 namespace HB.RabbitMQ.ServiceModel
@@ -251,6 +252,16 @@ namespace HB.RabbitMQ.ServiceModel
             MethodInvocationTrace.Write();
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public EventingBasicConsumer CreateEventingBasicConsumer(string routingKey, string exchange, TimeSpan timeout, CancellationToken cancelToken)
+        {
+            MethodInvocationTrace.Write();
+            using (_invocationTracker.TrackOperation())
+            using (var cancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancelToken, _invocationTracker.Token))
+            {
+                return _conn.CreateEventingBasicConsumer(routingKey, exchange, true, true, null, timeout, cancelTokenSource.Token);
+            }
         }
     }
 }

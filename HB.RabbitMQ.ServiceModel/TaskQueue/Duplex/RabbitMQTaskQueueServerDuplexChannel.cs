@@ -23,7 +23,9 @@ using System;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 using HB.RabbitMQ.ServiceModel.TaskQueue.Duplex.Messages;
+using RabbitMQ.Client.Events;
 
 namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
 {
@@ -33,18 +35,45 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         private readonly IRabbitMQReader _queueReader;
         private readonly RabbitMQTaskQueueUri _remoteUri;
         private readonly BufferManager _bufferMgr;
+        private readonly string _abortTopic;
+        private readonly EventingBasicConsumer _clientClosedEvent;
 
-        public RabbitMQTaskQueueServerDuplexChannel(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, EndpointAddress remoteAddress, BufferManager bufferManager, IRabbitMQReader queueReader)
+        public RabbitMQTaskQueueServerDuplexChannel(BindingContext context, ChannelManagerBase channelManager, RabbitMQTaskQueueBinding binding, EndpointAddress localAddress, EndpointAddress remoteAddress, BufferManager bufferManager, IRabbitMQReader queueReader, string abortTopic, EventingBasicConsumer clientClosedEvent)
             : base(context, channelManager, binding, remoteAddress, localAddress)
         {
             MethodInvocationTrace.Write();
+            _abortTopic = abortTopic;
+            _clientClosedEvent = clientClosedEvent;
             _bufferMgr = bufferManager;
             _remoteAddress = remoteAddress;
             _remoteUri = new RabbitMQTaskQueueUri(remoteAddress.Uri.ToString());
+            _clientClosedEvent.Received += ClientMessageReceived;
+
             _queueReader = queueReader;
         }
-        
+
+        private void ClientMessageReceived(object sender, BasicDeliverEventArgs e)
+        {
+            if (e.RoutingKey == _abortTopic)
+            {
+                _clientClosedEvent.Received -= ClientMessageReceived;
+                CloseSessionRequestReceived = true;
+                Abort();
+            }
+        }
+
         protected override IRabbitMQReader QueueReader { get { return _queueReader; } }
+
+        public override Message Receive(TimeSpan timeout)
+        {
+            var timeoutTimer = TimeoutTimer.StartNew(timeout);
+            var msg = base.Receive(timeoutTimer.RemainingTime);
+            if (CloseSessionRequestReceived)
+            {
+                Close(timeoutTimer.RemainingTime);
+            }
+            return msg;
+        }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
         {
@@ -55,6 +84,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
             {
                 try
                 {
+                    _clientClosedEvent.Received -= ClientMessageReceived;
                     CloseOutputSession(isAborting ? TimeSpan.FromSeconds(30) : timeoutTimer.RemainingTime, !isAborting);
                 }
                 catch (Exception e)
@@ -75,8 +105,14 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
                     }
                 }
             }
-            base.OnClose(timeoutTimer.RemainingTime, closeReason);
-            DisposeHelper.DisposeIfNotNull(_queueReader);
+            try
+            {
+                base.OnClose(timeoutTimer.RemainingTime, closeReason);
+            }
+            finally
+            {
+                DisposeHelper.DisposeIfNotNull(_queueReader);
+            }
         }
 
         public override void Send(Message message, TimeSpan timeout)

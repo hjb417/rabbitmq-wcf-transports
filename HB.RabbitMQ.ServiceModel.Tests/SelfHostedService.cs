@@ -14,7 +14,7 @@ namespace HB.RabbitMQ.ServiceModel.Tests
     {
         private readonly ConcurrentBag<ICommunicationObject> _commObjs = new ConcurrentBag<ICommunicationObject>();
 
-        public SelfHostedService(BindingTypes bindingType)
+        public SelfHostedService(BindingTypes bindingType, bool? transactionFlow)
         {
             QueueName = typeof(TServiceContract).Name + "-" + Guid.NewGuid();
             string uri;
@@ -38,7 +38,12 @@ namespace HB.RabbitMQ.ServiceModel.Tests
             }
             Service = new TService();
             var host = new ServiceHost(typeof(TService));
-            var ep = host.AddServiceEndpoint(typeof(TServiceContract), BindingFactory.Create(bindingType, _commObjs.Add, null), uri);
+            var binding = BindingFactory.Create(bindingType, _commObjs.Add, null);
+            if(transactionFlow.HasValue && (binding is RabbitMQTaskQueueBinding))
+            {
+                ((RabbitMQTaskQueueBinding)binding).TransactionFlow = transactionFlow.Value;
+            }
+            var ep = host.AddServiceEndpoint(typeof(TServiceContract), binding, uri);
             ep.ListenUriMode = listenMode;
             ep.EndpointBehaviors.Add(new InstanceContextProvider(Service));
             ep.EndpointBehaviors.Add(new MessageInspector(_commObjs.Add));
@@ -59,12 +64,12 @@ namespace HB.RabbitMQ.ServiceModel.Tests
         public CommunicationStateInfo[] GetStates<T>()
             where T : ICommunicationObject
         {
-            return _commObjs.OfType<T>().Select(c => new CommunicationStateInfo(c.GetType(), c.State)).ToArray();
+            return _commObjs.OfType<T>().Distinct().Select(c => new CommunicationStateInfo(c.GetType(), c.State)).ToArray();
         }
 
         public CommunicationStateInfo[] GetStates()
         {
-            return _commObjs.Select(c => new CommunicationStateInfo(c.GetType(), c.State)).ToArray();
+            return _commObjs.Distinct().Select(c => new CommunicationStateInfo(c.GetType(), c.State)).ToArray();
         }
 
         public override object InitializeLifetimeService()

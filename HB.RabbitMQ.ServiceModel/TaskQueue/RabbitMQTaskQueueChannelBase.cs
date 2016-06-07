@@ -92,9 +92,15 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
         {
             MethodInvocationTrace.Write();
-            base.OnClose(timeout, closeReason);
-            DisposeHelper.DisposeIfNotNull(QueueWriter);
-            DisposeHelper.DisposeIfNotNull(ConcurrentOperationManager);
+            try
+            {
+                base.OnClose(timeout, closeReason);
+            }
+            finally
+            {
+                DisposeHelper.DisposeIfNotNull(QueueWriter);
+                DisposeHelper.DisposeIfNotNull(ConcurrentOperationManager);
+            }
         }
     }
 }
