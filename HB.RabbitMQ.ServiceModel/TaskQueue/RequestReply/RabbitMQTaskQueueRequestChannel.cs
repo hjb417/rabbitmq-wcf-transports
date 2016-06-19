@@ -33,7 +33,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         private readonly BufferManager _bufferMgr;
 
         public RabbitMQTaskQueueRequestChannel(BindingContext context, ChannelManagerBase channelManager, EndpointAddress remoteAddress, Uri via, BufferManager bufferManger, RabbitMQTaskQueueBinding binding)
-            : base(context, channelManager, binding, new EndpointAddress(RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, "r" + Guid.NewGuid().ToString("N"))))
+            : base(context, channelManager, binding, new EndpointAddress(RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, $"r{Guid.NewGuid():N}")))
         {
             MethodInvocationTrace.Write();
             RemoteAddress = remoteAddress;
@@ -44,8 +44,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
         }
 
 
-        public RabbitMQTaskQueueUri RemoteUri { get; private set; }
-        public EndpointAddress RemoteAddress { get; private set; }
+        public RabbitMQTaskQueueUri RemoteUri { get; }
+        public EndpointAddress RemoteAddress { get; }
 
         public Uri Via { get; private set; }
 

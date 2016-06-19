@@ -15,6 +15,9 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices.Van
         void SuccessOneWay();
 
         [OperationContract]
+        void Noop();
+
+        [OperationContract]
         string Success();
     }
 }

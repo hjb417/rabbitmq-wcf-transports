@@ -33,5 +33,9 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices.Van
         public void SuccessOneWay()
         {
         }
+
+        public void Noop()
+        {
+        }
     }
 }

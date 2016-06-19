@@ -37,7 +37,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.Duplex
         protected override TChannel OnCreateChannel(EndpointAddress remoteAddress, Uri via)
         {
             MethodInvocationTrace.Write();
-            var localAddress = RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, "c" + Guid.NewGuid().ToString("N"));
+            var localAddress = RabbitMQTaskQueueUri.Create(remoteAddress.Uri.Host, remoteAddress.Uri.Port, $"c{Guid.NewGuid():N}");
             return (TChannel)(object)new RabbitMQTaskQueueClientDuplexChannel<TChannel>(Context, this, Binding, new EndpointAddress(localAddress), remoteAddress, BufferManager);
         }
     }

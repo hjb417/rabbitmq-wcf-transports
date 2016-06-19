@@ -27,6 +27,11 @@ namespace HB.RabbitMQ.ServiceModel.Tests.TaskQueue.RequestReply.TestServices.Van
             Service.FailOneWay(exceptionMessage);
         }
 
+        public void Noop()
+        {
+            Service.Noop();
+        }
+
         public string Success()
         {
             return Service.Success();
