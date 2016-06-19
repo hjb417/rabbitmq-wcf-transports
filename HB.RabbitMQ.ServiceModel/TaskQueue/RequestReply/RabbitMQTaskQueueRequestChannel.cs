@@ -46,8 +46,7 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue.RequestReply
 
         public RabbitMQTaskQueueUri RemoteUri { get; }
         public EndpointAddress RemoteAddress { get; }
-
-        public Uri Via { get; private set; }
+        public Uri Via { get; }
 
         protected override void OnClose(TimeSpan timeout, CloseReasons closeReason)
         {

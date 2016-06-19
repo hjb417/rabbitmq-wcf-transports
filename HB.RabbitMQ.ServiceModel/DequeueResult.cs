@@ -37,12 +37,12 @@ namespace HB.RabbitMQ.ServiceModel
             Body = body;
         }
 
-        public IBasicProperties BasicProperties { get; private set; }
-        public Stream Body { get; private set; }
-        public ulong DeliveryTag { get; private set; }
-        public string Exchange { get; private set; }
-        public uint MessageCount { get; private set; }
-        public bool Redelivered { get; private set; }
-        public string RoutingKey { get; private set; }
+        public IBasicProperties BasicProperties { get; }
+        public Stream Body { get; }
+        public ulong DeliveryTag { get; }
+        public string Exchange { get; }
+        public uint MessageCount { get; }
+        public bool Redelivered { get; }
+        public string RoutingKey { get; }
     }
 }

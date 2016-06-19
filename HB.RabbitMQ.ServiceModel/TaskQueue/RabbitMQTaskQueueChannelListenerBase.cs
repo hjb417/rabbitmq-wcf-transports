@@ -58,8 +58,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
 
         protected ConcurrentOperationManager ConcurrentOperationManager { get; private set; }
         protected BufferManager BufferManager { get; private set; }
-        protected RabbitMQTaskQueueBinding Binding { get; private set; }
-        protected BindingContext Context { get; private set; }
+        protected RabbitMQTaskQueueBinding Binding { get; }
+        protected BindingContext Context { get; }
 
         protected override IAsyncResult OnBeginAcceptChannel(TimeSpan timeout, AsyncCallback callback, object state)
         {

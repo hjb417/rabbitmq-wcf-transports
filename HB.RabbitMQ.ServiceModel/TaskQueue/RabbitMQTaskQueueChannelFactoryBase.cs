@@ -40,9 +40,9 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
         }
 
         internal protected BufferManager BufferManager { get; private set; }
-        protected BindingContext Context { get; private set; }
-        protected RabbitMQTaskQueueBinding Binding { get; private set; }
-        protected RabbitMQTransportBindingElement BindingElement { get; private set; }
+        protected BindingContext Context { get; }
+        protected RabbitMQTaskQueueBinding Binding { get; }
+        protected RabbitMQTransportBindingElement BindingElement { get; }
 
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {

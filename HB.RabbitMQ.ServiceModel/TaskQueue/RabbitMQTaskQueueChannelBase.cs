@@ -43,8 +43,8 @@ namespace HB.RabbitMQ.ServiceModel.TaskQueue
             _msgEncoderFactory = context.GetMessageEncoderFactory();
         }
 
-        protected RabbitMQTaskQueueBinding Binding { get; private set; }
-        protected BindingContext BindingContext { get; private set; }
+        protected RabbitMQTaskQueueBinding Binding { get; }
+        protected BindingContext BindingContext { get; }
         protected ConcurrentOperationManager ConcurrentOperationManager { get; private set; }
         internal protected IRabbitMQWriter QueueWriter { get; protected set; }
         protected MessageEncoderFactory MessageEncoderFactory { get { return _msgEncoderFactory; } }

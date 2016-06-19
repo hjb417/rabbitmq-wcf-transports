@@ -36,7 +36,7 @@ namespace HB.RabbitMQ.ServiceModel
         {
         }
 
-        public static RabbitMQReaderWriterFactory Instance { get; private set; }
+        public static RabbitMQReaderWriterFactory Instance { get; }
 
         public IRabbitMQReader CreateReader(RabbitMQReaderSetup setup)
         {
